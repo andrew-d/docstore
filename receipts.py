@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import json
+import logging
 import datetime
 
 import peewee
@@ -19,6 +21,7 @@ APP_ROOT = os.path.dirname(os.path.realpath(__file__))
 DATABASE = os.path.join(APP_ROOT, 'receipts.db')
 
 db = SqliteExtDatabase(DATABASE, threadlocals=True)
+log = logging.getLogger(__name__)
 
 
 ################################################################################
@@ -272,5 +275,13 @@ if __name__ == "__main__":
     db.create_tables([Receipt, Tag, ReceiptToTag, FTSReceipt], safe=True)
 
     # Start app
+    log.info("Listening on port %d", 8888)
     application.listen(8888)
-    tornado.ioloop.IOLoop.instance().start()
+
+    try:
+        tornado.ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        log.info("Finished")
+    finally:
+        sys.stdout.flush()
+        sys.stderr.flush()
