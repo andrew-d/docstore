@@ -12,6 +12,7 @@ import tornado.ioloop
 import tornado.web
 from tornado.options import define, options
 
+
 ################################################################################
 ## Configuration
 APP_ROOT = os.path.dirname(os.path.realpath(__file__))
@@ -91,10 +92,33 @@ class BaseModel(Model):
 
 class Receipt(BaseModel):
     """The model representing a single receipt."""
-    id = PrimaryKeyField()
-    path = TextField(null=False)
-    amount = DecimalField(null=False)
-    created = DateTimeField(null=False, default=datetime.datetime.now)
+    id       = PrimaryKeyField()
+    amount   = DecimalField(null=False)
+    ocr_data = TextField(null=False)
+    path     = TextField(null=False)
+    created  = DateTimeField(null=False, default=datetime.datetime.now)
+
+
+class FTSReceipt(FTSModel):
+    """The full-text search model for our Receipt"""
+    receipt = ForeignKeyField(Receipt, primary_key=True)
+    content = TextField()
+
+    class Meta: # Fix highlighting ):
+        database = db
+
+    @classmethod
+    def store_note(cls, receipt):
+        try:
+            fts_receipt = FTSReceipt.get(FTSReceipt.receipt == receipt)
+        except FTSReceipt.DoesNotExist:
+            fts_receipt = FTSReceipt(receipt=receipt)
+            force_insert = True
+        else:
+            force_insert = False
+
+        fts_receipt.content = receipt.ocr_data
+        fts_receipt.save(force_insert=force_insert)
 
 
 class Tag(BaseModel):
@@ -192,6 +216,7 @@ class ReceiptsHandler(BaseHandler):
     def post(self):
         params = json.loads(self.request.body.decode('latin1'))
         try:
+            # TODO: real parameters here
             with db.transaction():
                 t = Receipt.create(
                     path=params['path'],
@@ -223,6 +248,13 @@ class ReceiptHandler(BaseHandler):
         self.json(True)
 
 
+# TODO:
+#   - ScannedImage model
+#       - Endpoint to scan these
+#       - Clean up after 24 hours have passed (sched module?)
+#       - OCR the input receipt
+
+
 ################################################################################
 ## App setup
 application = tornado.web.Application([
@@ -237,7 +269,7 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
 
     # Create database tables
-    db.create_tables([Receipt, Tag, ReceiptToTag], safe=True)
+    db.create_tables([Receipt, Tag, ReceiptToTag, FTSReceipt], safe=True)
 
     # Start app
     application.listen(8888)
