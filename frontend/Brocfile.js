@@ -17,4 +17,23 @@ var app = new EmberApp();
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
+app.import({
+    development: 'bower_components/bootstrap/dist/css/bootstrap.css',
+    production:  'bower_components/bootstrap/dist/css/bootstrap.min.css',
+});
+
+app.import({
+    development: 'bower_components/bootstrap/dist/js/bootstrap.js',
+    production:  'bower_components/bootstrap/dist/js/bootstrap.min.js',
+});
+
+[
+    'glyphicons-halflings-regular.eot',
+    'glyphicons-halflings-regular.svg',
+    'glyphicons-halflings-regular.ttf',
+    'glyphicons-halflings-regular.woff',
+].forEach(function(fname) {
+    app.import('bower_components/bootstrap/dist/fonts/' + fname);
+});
+
 module.exports = app.toTree();
