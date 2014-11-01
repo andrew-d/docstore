@@ -5,9 +5,19 @@ import sys
 import json
 import logging
 import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 import peewee
-from peewee import *
+from peewee import (
+    Model,
+    CompositeKey,
+    DateTimeField,
+    DecimalField,
+    ForeignKeyField,
+    PrimaryKeyField,
+    TextField,
+    JOIN_LEFT_OUTER,
+)
 from playhouse.sqlite_ext import FTSModel, SqliteExtDatabase
 
 import tornado.ioloop
@@ -15,16 +25,19 @@ import tornado.web
 from tornado.options import define, options
 
 
-################################################################################
+###############################################################################
 ## Configuration
 APP_ROOT = os.path.dirname(os.path.realpath(__file__))
 DATABASE = os.path.join(APP_ROOT, 'receipts.db')
 
 db = SqliteExtDatabase(DATABASE, threadlocals=True)
 log = logging.getLogger(__name__)
+threadpool = ThreadPoolExecutor(max_workers=4)
+
+define("debug", default=False, help="run the application in debug mode")
 
 
-################################################################################
+###############################################################################
 ## Utils
 
 # Taken from flask-peewee
@@ -86,19 +99,42 @@ class Serializer(object):
 SERIALIZE = Serializer()
 
 
-################################################################################
+###############################################################################
 ## Models
 class BaseModel(Model):
     class Meta:
         database = db
 
 
+class Image(BaseModel):
+    """The model representing an uploaded or scanned image"""
+    id       = PrimaryKeyField()
+    hash     = TextField(null=False)
+    path     = TextField(null=False)
+    created  = DateTimeField(null=False, default=datetime.datetime.now)
+
+    @classmethod
+    def get_expired(self):
+        """
+        Return all images that are more than 24 hours old and are not
+        associated with a receipt.
+        """
+        expiry_time = datetime.timedelta(hours=24)
+        abs_expiry = datetime.datetime.now() - expiry_time
+        return (
+            Image.select().
+                where(Image.created < abs_expiry).
+                join(Receipt, JOIN_LEFT_OUTER).
+                where(Receipt.image >> None)
+        )
+
+
 class Receipt(BaseModel):
-    """The model representing a single receipt."""
+    """The model representing a single receipt"""
     id       = PrimaryKeyField()
     amount   = DecimalField(null=False)
     ocr_data = TextField(null=False)
-    path     = TextField(null=False)
+    image    = ForeignKeyField(Image, null=False)
     created  = DateTimeField(null=False, default=datetime.datetime.now)
 
 
@@ -132,17 +168,21 @@ class Tag(BaseModel):
 
 class ReceiptToTag(BaseModel):
     """A simple "through" table for many-to-many relationship."""
-    receipt = ForeignKeyField(Receipt)
-    tag = ForeignKeyField(Tag)
+    receipt = ForeignKeyField(Receipt, null=False)
+    tag = ForeignKeyField(Tag, null=False)
 
     class Meta: # Fix highlighting ):
         primary_key = CompositeKey('receipt', 'tag')
 
 
-################################################################################
+###############################################################################
 ## Handlers
 class BaseHandler(tornado.web.RequestHandler):
     def write_error(self, status_code, **kwargs):
+        """
+        Write an error message in JSON format.  This is called by the
+        send_error() function.
+        """
         if 'message' not in kwargs:
             if status_code == 405:
                 kwargs['message'] = 'Invalid HTTP method'
@@ -150,14 +190,24 @@ class BaseHandler(tornado.web.RequestHandler):
                 kwargs['message'] = 'Unknown error'
 
         kwargs["error"] = True
-        self.set_status(status_code)
         self.json(kwargs)
 
     def serialize(self, obj, *, name=None, force_serialize=False):
+        """
+        Serialize a peewee model or query to the appropriate format,
+        as expected by Ember-Data.
+        """
         if isinstance(obj, Model):
+            # Single object - should be serialized at the root.
             obj = SERIALIZE.serialize_object(obj)
         elif (isinstance(obj, peewee.Query) or
               isinstance(obj, (list, tuple)) and force_serialize):
+            # Set of objects, should be serialized in the format:
+            #   {
+            #       "models": [ list of models ]
+            #   }
+            #
+            # Currently, a name must be provided.
             if name is None:
                 raise RuntimeError("must provide a name when serializing multiple models")
 
@@ -168,6 +218,9 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.json(obj)
 
     def json(self, obj):
+        """
+        Write an object out in JSON format, setting the correct Content-Type
+        """
         self.set_header('Content-Type', 'application/json; charset=utf-8')
         self.write(json.dumps(obj))
 
@@ -178,6 +231,11 @@ class MainHandler(BaseHandler):
 
 
 class TagsHandler(BaseHandler):
+    """
+    Handles the routes:
+        GET     /api/tags
+        POST    /api/tags
+    """
     def get(self):
         self.serialize(Tag.select(), name='tags')
 
@@ -186,7 +244,7 @@ class TagsHandler(BaseHandler):
         try:
             with db.transaction():
                 t = Tag.create(name=params['name'])
-        except IntegrityError:
+        except peewee.IntegrityError:
             return self.send_error(409, message="tag already exists")
 
         self.set_status(201)
@@ -194,6 +252,11 @@ class TagsHandler(BaseHandler):
 
 
 class TagHandler(BaseHandler):
+    """
+    Handles the routes:
+        GET     /api/tags/<id>
+        DELETE  /api/tags/<id>
+    """
     def get(self, tag_id):
         try:
             tag = Tag.get(Tag.id == tag_id)
@@ -213,6 +276,11 @@ class TagHandler(BaseHandler):
 
 
 class ReceiptsHandler(BaseHandler):
+    """
+    Handles the routes:
+        GET     /api/receipts
+        POST    /api/receipts
+    """
     def get(self):
         self.serialize(Receipt.select(), name='receipts')
 
@@ -225,7 +293,7 @@ class ReceiptsHandler(BaseHandler):
                     path=params['path'],
                     amount=params['amount'],
                 )
-        except IntegrityError:
+        except peewee.IntegrityError:
             return self.send_error(409, message="receipt already exists")
 
         self.set_status(201)
@@ -233,6 +301,11 @@ class ReceiptsHandler(BaseHandler):
 
 
 class ReceiptHandler(BaseHandler):
+    """
+    Handles the routes:
+        GET     /api/receipts/<id>
+        DELETE  /api/receipts/<id>
+    """
     def get(self, receipt_id):
         try:
             receipt = Receipt.get(Receipt.id == receipt_id)
@@ -251,6 +324,39 @@ class ReceiptHandler(BaseHandler):
         self.json(True)
 
 
+class ImagesHandler(BaseHandler):
+    """
+    Handles the routes:
+        GET     /api/images
+    """
+    def get(self):
+        self.serialize(Image.select(), name='images')
+
+
+class ImageHandler(BaseHandler):
+    """
+    Handles the routes:
+        GET     /api/images/<id>
+    """
+    def get(self, image_id):
+        try:
+            image = Image.get(Image.id == image_id)
+        except Image.DoesNotExist:
+            return self.send_error(404, message="image does not exist")
+
+        self.serialize(image)
+
+
+class ScanImageHandler(BaseHandler):
+    """
+    Handles the routes:
+        POST    /api/images/scan
+    """
+    @tornado.web.asynchronous
+    def post(self):
+        # TODO
+        pass
+
 # TODO:
 #   - ScannedImage model
 #       - Endpoint to scan these
@@ -258,18 +364,28 @@ class ReceiptHandler(BaseHandler):
 #       - OCR the input receipt
 
 
+def check_dependencies():
+    # TODO: check for tesseract
+    pass
+
+
 ################################################################################
 ## App setup
-application = tornado.web.Application([
-    (r"/", MainHandler),
-    (r"/api/tags", TagsHandler),
-    (r"/api/tags/(\d+)", TagHandler),
-    (r"/api/receipts", ReceiptsHandler),
-    (r"/api/receipts/(\d+)", ReceiptHandler),
-])
-
 if __name__ == "__main__":
     tornado.options.parse_command_line()
+
+    check_dependencies()
+
+    application = tornado.web.Application([
+        (r"/",                      MainHandler),
+        (r"/api/tags",              TagsHandler),
+        (r"/api/tags/(\d+)",        TagHandler),
+        (r"/api/receipts",          ReceiptsHandler),
+        (r"/api/receipts/(\d+)",    ReceiptHandler),
+        (r"/api/images",            ImagesHandler),
+        (r"/api/images/(\d+)",      ImageHandler),
+        (r"/api/images/scan",       ScanImageHandler),
+    ], debug=options.debug)
 
     # Create database tables
     db.create_tables([Receipt, Tag, ReceiptToTag, FTSReceipt], safe=True)
