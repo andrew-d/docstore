@@ -1,3 +1,6 @@
-*.db
 *.pyc
 .DS_Store
+
+# Data files/directories
+/data
+*.db

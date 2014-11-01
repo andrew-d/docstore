@@ -3,8 +3,10 @@
 import os
 import sys
 import json
+import hashlib
 import logging
 import datetime
+from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 
 import peewee
@@ -21,8 +23,12 @@ from peewee import (
 from playhouse.sqlite_ext import FTSModel, SqliteExtDatabase
 
 import tornado.ioloop
+import tornado.iostream
 import tornado.web
+from tornado import gen
 from tornado.options import define, options
+
+import pyinsane.abstract as pyinsane
 
 
 ###############################################################################
@@ -32,9 +38,11 @@ DATABASE = os.path.join(APP_ROOT, 'receipts.db')
 
 db = SqliteExtDatabase(DATABASE, threadlocals=True)
 log = logging.getLogger(__name__)
-threadpool = ThreadPoolExecutor(max_workers=4)
+scan_pool = ThreadPoolExecutor(max_workers=1)
 
 define("debug", default=False, help="run the application in debug mode")
+define("device", default=None, help="name of the device to use as a scanner")
+define("storage", default=None, help="location to store scanned receipts in")
 
 
 ###############################################################################
@@ -110,7 +118,6 @@ class Image(BaseModel):
     """The model representing an uploaded or scanned image"""
     id       = PrimaryKeyField()
     hash     = TextField(null=False)
-    path     = TextField(null=False)
     created  = DateTimeField(null=False, default=datetime.datetime.now)
 
     @classmethod
@@ -345,6 +352,46 @@ class ImageHandler(BaseHandler):
         self.serialize('image', image)
 
 
+class ImageDataHandler(BaseHandler):
+    """
+    Handles the routes:
+        GET     /api/images/<id>/data
+    """
+    @gen.coroutine
+    def get(self, image_id):
+        try:
+            image = Image.get(Image.id == image_id)
+        except Image.DoesNotExist:
+            return self.send_error(404, message="image does not exist")
+
+        # Get the path of the file
+        fpath = os.path.join(
+            self.application.settings['storage'],
+            image.hash[0:2],
+            image.hash + '.png',
+        )
+
+        try:
+            size = os.path.getsize(fpath)
+        except OSError as e:
+            return self.send_error(500, message="could not get size of image")
+
+        self.set_header('Content-Length', size)
+        self.set_header('Content-Type', 'image/png')
+
+        with open(fpath, 'rb') as f:
+            while True:
+                data = f.read(8192)
+                if len(data) == 0:
+                    break
+
+                try:
+                    self.write(data)
+                    yield self.flush()
+                except tornado.iostream.StreamClosedError:
+                    return
+
+
 class ScanImageHandler(BaseHandler):
     """
     Handles the routes:
@@ -352,12 +399,65 @@ class ScanImageHandler(BaseHandler):
     """
     @tornado.web.asynchronous
     def post(self):
-        # TODO
-        pass
+        if self.application.settings['device'] is None:
+            return self.send_error(501, message='no scanner is available')
+
+        # Submit the request to the threadpool
+        args = ()
+        kwargs = {}
+        job = scan_pool.submit(partial(self.scan_image, *args, **kwargs))
+
+        # When we're finished, call back onto the IO loop
+        job.add_done_callback(
+            lambda future: tornado.ioloop.IOLoop.instance().add_callback(
+                partial(self.scan_finished, future)))
+
+    def scan_image(self):
+        device = self.application.settings['device']
+        scan_session = device.scan(multiple=False)
+
+        try:
+            while True:
+                scan_session.scan.read()
+        except EOFError:
+            pass
+
+        # Return the image to the caller.
+        return scan_session.images[0]
+
+    def scan_finished(self, future):
+        # Get and hash the image - we use the SHA256 hash as a key
+        image = future.result()
+        hash = hashlib.sha256(image.tostring()).hexdigest()
+
+        log.debug("got image of size %r with hash %s", image.size, hash)
+
+        # Create an entry in the database.
+        # Note: do this before we save the image to disk, so if it fails, then
+        # we don't have leftover files lying around.
+        with db.transaction():
+            dbImg = Image.create(hash=hash)
+
+        # Build the storage path
+        dirname = os.path.join(
+            self.application.settings['storage'],
+            hash[0:2],
+        )
+
+        # Ensure the directory exists
+        # Note: before 3.4.1 this will raise if the mode isn't the same.
+        os.makedirs(dirname, mode=0o700, exist_ok=True)
+
+        # Save the file as PNG.
+        image.save(os.path.join(dirname, hash + '.png'))
+
+        # Return the newly-created image object.
+        self.serialize('image', dbImg)
+        self.finish()
+
 
 # TODO:
 #   - ScannedImage model
-#       - Endpoint to scan these
 #       - Clean up after 24 hours have passed (sched module?)
 #       - OCR the input receipt
 
@@ -368,11 +468,38 @@ def check_dependencies():
 
 
 ################################################################################
-## App setup
-if __name__ == "__main__":
+## Main function
+def main():
     tornado.options.parse_command_line()
 
+    if options.storage is None:
+        log.error("no storage directory given")
+        return
+    storage = os.path.realpath(os.path.abspath(options.storage))
+    log.info("using storage path: %s", storage)
+
     check_dependencies()
+
+    if options.debug:
+        log.debug("scanning for devices")
+        devices = pyinsane.get_devices()
+        for i, dev in enumerate(devices):
+            log.info("found device %d: %s/%s/%s",
+                     i, dev.name, dev.vendor, dev.model)
+
+    if options.device is None:
+        log.warn("no device specified, scanning will be unavailable")
+        device = None
+    else:
+        device = pyinsane.Scanner(name=options.device)
+        log.debug("using device: name = %s, vendor = %s, model = %s",
+                  device.name, device.vendor, device.model)
+
+    settings = {
+        'debug': options.debug,
+        'device': device,
+        'storage': storage,
+    }
 
     application = tornado.web.Application([
         (r"/",                      MainHandler),
@@ -382,11 +509,12 @@ if __name__ == "__main__":
         (r"/api/receipts/(\d+)",    ReceiptHandler),
         (r"/api/images",            ImagesHandler),
         (r"/api/images/(\d+)",      ImageHandler),
+        (r"/api/images/(\d+)/data", ImageDataHandler),
         (r"/api/images/scan",       ScanImageHandler),
-    ], debug=options.debug)
+    ], **settings)
 
     # Create database tables
-    db.create_tables([Receipt, Tag, ReceiptToTag, FTSReceipt], safe=True)
+    db.create_tables([Image, Receipt, Tag, ReceiptToTag, FTSReceipt], safe=True)
 
     # Start app
     log.info("Listening on port %d", 8888)
@@ -399,3 +527,7 @@ if __name__ == "__main__":
     finally:
         sys.stdout.flush()
         sys.stderr.flush()
+
+
+if __name__ == "__main__":
+    main()
