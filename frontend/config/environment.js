@@ -2,7 +2,7 @@
 
 module.exports = function(environment) {
   var ENV = {
-    modulePrefix: 'receipts',
+    modulePrefix: 'docstore',
     environment: environment,
     baseURL: '/',
     locationType: 'auto',

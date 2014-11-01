@@ -486,6 +486,13 @@ class ScanImageHandler(BaseHandler):
 #   - ScannedImage model
 #       - Clean up after 24 hours have passed (sched module?)
 #       - OCR the input receipt
+#   - Allow uploading a document of some sort
+#       - If we want to allow OCRing PDFs, then we need to convert them to
+#         something that tesseract can read (e.g. TIFF)
+#   - Create thumbnails?
+#   - Strip black space on the sides of the scanned image?
+#       - Should have a script for this around somewhere...
+#   - Allow the user to modify tags on a receipt
 
 
 def check_dependencies():
