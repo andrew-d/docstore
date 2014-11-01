@@ -6,6 +6,7 @@ import json
 import hashlib
 import logging
 import datetime
+import subprocess
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 
@@ -39,6 +40,7 @@ DATABASE = os.path.join(APP_ROOT, 'receipts.db')
 db = SqliteExtDatabase(DATABASE, threadlocals=True)
 log = logging.getLogger(__name__)
 scan_pool = ThreadPoolExecutor(max_workers=1)
+ocr_pool  = ThreadPoolExecutor(max_workers=10)
 
 define("debug", default=False, help="run the application in debug mode")
 define("device", default=None, help="name of the device to use as a scanner")
@@ -105,6 +107,30 @@ class Serializer(object):
         return self.clean_data(data)
 
 SERIALIZE = Serializer()
+
+
+# Tesseract wrapper - tries OCRing an image.  Returns None if something failed,
+# the OCR-d text otherwise.
+def ocr_image(image_file, language='eng'):
+    proc = subprocess.Popen(['tesseract', 'stdin', 'stdout', '-l', language],
+                            stdin=image_file,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE
+                            )
+
+    try:
+        stdout, stderr = proc.communicate(timeout=15)
+    except TimeoutExpired:
+        log.warn("OCR process timed out - killing...")
+        proc.kill()
+        stdout, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        log.warn("OCR process exited with return code %d", proc.returncode)
+        return None
+
+    # TODO: convert from bytes to string?
+    return stdout
 
 
 ###############################################################################
