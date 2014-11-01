@@ -192,26 +192,23 @@ class BaseHandler(tornado.web.RequestHandler):
         kwargs["error"] = True
         self.json(kwargs)
 
-    def serialize(self, obj, *, name=None, force_serialize=False):
+    def serialize(self, name, obj, *, force_serialize=False):
         """
         Serialize a peewee model or query to the appropriate format,
         as expected by Ember-Data.
         """
         if isinstance(obj, Model):
             # Single object - should be serialized at the root.
-            obj = SERIALIZE.serialize_object(obj)
+            obj = {name: SERIALIZE.serialize_object(obj)}
+
         elif (isinstance(obj, peewee.Query) or
               isinstance(obj, (list, tuple)) and force_serialize):
             # Set of objects, should be serialized in the format:
             #   {
             #       "models": [ list of models ]
             #   }
-            #
-            # Currently, a name must be provided.
-            if name is None:
-                raise RuntimeError("must provide a name when serializing multiple models")
+            obj = {name + 's': [SERIALIZE.serialize_object(x) for x in obj]}
 
-            obj = {name: [SERIALIZE.serialize_object(x) for x in obj]}
         else:
             raise RuntimeError("unknown type to serialize: %r" % (obj,))
 
@@ -222,6 +219,7 @@ class BaseHandler(tornado.web.RequestHandler):
         Write an object out in JSON format, setting the correct Content-Type
         """
         self.set_header('Content-Type', 'application/json; charset=utf-8')
+        self.set_header('Access-Control-Allow-Origin', '*')
         self.write(json.dumps(obj))
 
 
@@ -237,7 +235,7 @@ class TagsHandler(BaseHandler):
         POST    /api/tags
     """
     def get(self):
-        self.serialize(Tag.select(), name='tags')
+        self.serialize('tag', Tag.select())
 
     def post(self):
         params = json.loads(self.request.body.decode('latin1'))
@@ -248,7 +246,7 @@ class TagsHandler(BaseHandler):
             return self.send_error(409, message="tag already exists")
 
         self.set_status(201)
-        self.serialize(t)
+        self.serialize('tag', t)
 
 
 class TagHandler(BaseHandler):
@@ -263,7 +261,7 @@ class TagHandler(BaseHandler):
         except Tag.DoesNotExist:
             return self.send_error(404, message="tag does not exist")
 
-        self.serialize(tag)
+        self.serialize('tag', tag)
 
     def delete(self, tag_id):
         try:
@@ -282,7 +280,7 @@ class ReceiptsHandler(BaseHandler):
         POST    /api/receipts
     """
     def get(self):
-        self.serialize(Receipt.select(), name='receipts')
+        self.serialize('receipt', Receipt.select())
 
     def post(self):
         params = json.loads(self.request.body.decode('latin1'))
@@ -297,7 +295,7 @@ class ReceiptsHandler(BaseHandler):
             return self.send_error(409, message="receipt already exists")
 
         self.set_status(201)
-        self.serialize(t)
+        self.serialize('receipt', t)
 
 
 class ReceiptHandler(BaseHandler):
@@ -312,7 +310,7 @@ class ReceiptHandler(BaseHandler):
         except Receipt.DoesNotExist:
             return self.send_error(404, message="receipt does not exist")
 
-        self.serialize(receipt)
+        self.serialize('receipt', receipt)
 
     def delete(self, receipt_id):
         try:
@@ -330,7 +328,7 @@ class ImagesHandler(BaseHandler):
         GET     /api/images
     """
     def get(self):
-        self.serialize(Image.select(), name='images')
+        self.serialize('image', Image.select())
 
 
 class ImageHandler(BaseHandler):
@@ -344,7 +342,7 @@ class ImageHandler(BaseHandler):
         except Image.DoesNotExist:
             return self.send_error(404, message="image does not exist")
 
-        self.serialize(image)
+        self.serialize('image', image)
 
 
 class ScanImageHandler(BaseHandler):
