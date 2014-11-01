@@ -2,6 +2,6 @@
 
 <ul>
     {{#each}}
-        <li>{{name}}</li>
+        <li>{{#link-to 'tags.show' this}}{{name}}{{/link-to}}</li>
     {{/each}}
 </ul>
