@@ -16,10 +16,10 @@ from peewee import (
 from docstore.app import db, scan_pool
 from docstore.models import (
     Image,
-    Receipt,
+    Document,
     Tag,
-    # ReceiptToTag,
-    # FTSReceipt
+    # DocumentToTag,
+    # FTSDocument
 )
 
 
@@ -166,52 +166,52 @@ class TagHandler(BaseHandler):
         self.json(True)
 
 
-class ReceiptsHandler(BaseHandler):
+class DocumentsHandler(BaseHandler):
     """
     Handles the routes:
-        GET     /api/receipts
-        POST    /api/receipts
+        GET     /api/documents
+        POST    /api/documents
     """
     def get(self):
-        self.serialize('receipt', Receipt.select())
+        self.serialize('document', Document.select())
 
     def post(self):
         params = json.loads(self.request.body.decode('latin1'))
         try:
             # TODO: real parameters here
             with db.transaction():
-                t = Receipt.create(
+                t = Document.create(
                     path=params['path'],
                     amount=params['amount'],
                 )
         except peewee.IntegrityError:
-            return self.send_error(409, message="receipt already exists")
+            return self.send_error(409, message="document already exists")
 
         self.set_status(201)
-        self.serialize('receipt', t)
+        self.serialize('document', t)
 
 
-class ReceiptHandler(BaseHandler):
+class DocumentHandler(BaseHandler):
     """
     Handles the routes:
-        GET     /api/receipts/<id>
-        DELETE  /api/receipts/<id>
+        GET     /api/documents/<id>
+        DELETE  /api/documents/<id>
     """
-    def get(self, receipt_id):
+    def get(self, document_id):
         try:
-            receipt = Receipt.get(Receipt.id == receipt_id)
-        except Receipt.DoesNotExist:
-            return self.send_error(404, message="receipt does not exist")
+            document = Document.get(Document.id == document_id)
+        except Document.DoesNotExist:
+            return self.send_error(404, message="document does not exist")
 
-        self.serialize('receipt', receipt)
+        self.serialize('document', document)
 
-    def delete(self, receipt_id):
+    def delete(self, document_id):
         try:
-            receipt = Receipt.get(Receipt.id == receipt_id)
-        except Receipt.DoesNotExist:
-            return self.send_error(404, message="receipt does not exist")
+            document = Document.get(Document.id == document_id)
+        except Document.DoesNotExist:
+            return self.send_error(404, message="document does not exist")
 
-        receipt.delete_instance()
+        document.delete_instance()
         self.json(True)
 
 

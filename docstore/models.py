@@ -22,54 +22,54 @@ class BaseModel(Model):
 
 class Image(BaseModel):
     """The model representing an uploaded or scanned image"""
-    id       = PrimaryKeyField()
-    hash     = TextField(null=False)
-    created  = DateTimeField(null=False, default=datetime.datetime.now)
+    id = PrimaryKeyField()
+    hash = TextField(null=False)
+    created = DateTimeField(null=False, default=datetime.datetime.now)
 
     @classmethod
     def get_expired(self):
         """
         Return all images that are more than 24 hours old and are not
-        associated with a receipt.
+        associated with a document.
         """
         expiry_time = datetime.timedelta(hours=24)
         abs_expiry = datetime.datetime.now() - expiry_time
         return (Image.
                 select().
                 where(Image.created < abs_expiry).
-                join(Receipt, JOIN_LEFT_OUTER).
-                where(Receipt.image >> None))
+                join(Document, JOIN_LEFT_OUTER).
+                where(Document.image >> None))
 
 
-class Receipt(BaseModel):
-    """The model representing a single receipt"""
-    id       = PrimaryKeyField()
-    amount   = DecimalField(null=False)
+class Document(BaseModel):
+    """The model representing a single document"""
+    id = PrimaryKeyField()
+    amount = DecimalField(null=False)
     ocr_data = TextField(null=False)
-    image    = ForeignKeyField(Image, null=False)
-    created  = DateTimeField(null=False, default=datetime.datetime.now)
+    image = ForeignKeyField(Image, null=False)
+    created = DateTimeField(null=False, default=datetime.datetime.now)
 
 
-class FTSReceipt(FTSModel):
-    """The full-text search model for our Receipt"""
-    receipt = ForeignKeyField(Receipt, primary_key=True)
+class FTSDocument(FTSModel):
+    """The full-text search model for our Document"""
+    document = ForeignKeyField(Document, primary_key=True)
     content = TextField()
 
     class Meta:  # Fix highlighting ):
         database = db
 
     @classmethod
-    def store_note(cls, receipt):
+    def store_note(cls, document):
         try:
-            fts_receipt = FTSReceipt.get(FTSReceipt.receipt == receipt)
-        except FTSReceipt.DoesNotExist:
-            fts_receipt = FTSReceipt(receipt=receipt)
+            fts_document = FTSDocument.get(FTSDocument.document == document)
+        except FTSDocument.DoesNotExist:
+            fts_document = FTSDocument(document=document)
             force_insert = True
         else:
             force_insert = False
 
-        fts_receipt.content = receipt.ocr_data
-        fts_receipt.save(force_insert=force_insert)
+        fts_document.content = document.ocr_data
+        fts_document.save(force_insert=force_insert)
 
 
 class Tag(BaseModel):
@@ -78,10 +78,10 @@ class Tag(BaseModel):
     name = TextField(null=False, unique=True)
 
 
-class ReceiptToTag(BaseModel):
+class DocumentToTag(BaseModel):
     """A simple "through" table for many-to-many relationship."""
-    receipt = ForeignKeyField(Receipt, null=False)
+    document = ForeignKeyField(Document, null=False)
     tag = ForeignKeyField(Tag, null=False)
 
     class Meta:  # Fix highlighting ):
-        primary_key = CompositeKey('receipt', 'tag')
+        primary_key = CompositeKey('document', 'tag')

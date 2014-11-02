@@ -67,8 +67,8 @@ def main():
         (r"/",                      r.MainHandler),
         (r"/api/tags",              r.TagsHandler),
         (r"/api/tags/(\d+)",        r.TagHandler),
-        (r"/api/receipts",          r.ReceiptsHandler),
-        (r"/api/receipts/(\d+)",    r.ReceiptHandler),
+        (r"/api/documents",          r.DocumentsHandler),
+        (r"/api/documents/(\d+)",    r.DocumentHandler),
         (r"/api/images",            r.ImagesHandler),
         (r"/api/images/(\d+)",      r.ImageHandler),
         (r"/api/images/(\d+)/data", r.ImageDataHandler),
@@ -78,10 +78,10 @@ def main():
     # Create database tables
     db.create_tables([
         models.Image,
-        models.Receipt,
+        models.Document,
         models.Tag,
-        models.ReceiptToTag,
-        models.FTSReceipt
+        models.DocumentToTag,
+        models.FTSDocument
     ], safe=True)
 
     # Start app
