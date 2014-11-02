@@ -5,6 +5,7 @@ from peewee import (
     Model,
 )
 
+
 # Taken from flask-peewee
 def get_dictionary_from_model(model, fields=None, exclude=None):
     model_class = type(model)
@@ -20,9 +21,12 @@ def get_dictionary_from_model(model, fields=None, exclude=None):
             continue
         field_obj = model_class._meta.fields[field_name]
         field_data = model._data.get(field_name)
-        if isinstance(field_obj, ForeignKeyField) and field_data and field_obj.rel_model in fields:
+        if (isinstance(field_obj, ForeignKeyField) and
+                field_data and field_obj.rel_model in fields):
             rel_obj = getattr(model, field_name)
-            data[field_name] = get_dictionary_from_model(rel_obj, fields, exclude)
+            data[field_name] = get_dictionary_from_model(rel_obj,
+                                                         fields,
+                                                         exclude)
         else:
             data[field_name] = field_data
 

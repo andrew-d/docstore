@@ -3,6 +3,7 @@ import subprocess
 
 log = logging.getLogger(__name__)
 
+
 # Tesseract wrapper - tries OCRing an image.  Returns None if something failed,
 # the OCR-d text otherwise.
 def ocr_image(image_file, language='eng'):
@@ -25,4 +26,3 @@ def ocr_image(image_file, language='eng'):
 
     # TODO: convert from bytes to string?
     return stdout
-

@@ -11,7 +11,7 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 
 import pyinsane.abstract as pyinsane
 
-from .app import APP_ROOT, db
+from .app import db
 from . import routes as r
 from . import models
 from .util import Serializer
@@ -54,8 +54,6 @@ def main():
     # Create the database and init. the proxy
     real_db = SqliteExtDatabase(options.database, threadlocals=True)
     db.initialize(real_db)
-
-    #check_dependencies()
 
     settings = {
         'debug': options.debug,

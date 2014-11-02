@@ -34,12 +34,11 @@ class Image(BaseModel):
         """
         expiry_time = datetime.timedelta(hours=24)
         abs_expiry = datetime.datetime.now() - expiry_time
-        return (
-            Image.select().
+        return (Image.
+                select().
                 where(Image.created < abs_expiry).
                 join(Receipt, JOIN_LEFT_OUTER).
-                where(Receipt.image >> None)
-        )
+                where(Receipt.image >> None))
 
 
 class Receipt(BaseModel):
@@ -56,7 +55,7 @@ class FTSReceipt(FTSModel):
     receipt = ForeignKeyField(Receipt, primary_key=True)
     content = TextField()
 
-    class Meta: # Fix highlighting ):
+    class Meta:  # Fix highlighting ):
         database = db
 
     @classmethod
@@ -84,5 +83,5 @@ class ReceiptToTag(BaseModel):
     receipt = ForeignKeyField(Receipt, null=False)
     tag = ForeignKeyField(Tag, null=False)
 
-    class Meta: # Fix highlighting ):
+    class Meta:  # Fix highlighting ):
         primary_key = CompositeKey('receipt', 'tag')

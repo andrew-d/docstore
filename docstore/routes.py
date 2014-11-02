@@ -17,8 +17,8 @@ from .models import (
     Image,
     Receipt,
     Tag,
-    #ReceiptToTag,
-    #FTSReceipt
+    # ReceiptToTag,
+    # FTSReceipt
 )
 
 
@@ -63,7 +63,8 @@ class BaseHandler(tornado.web.RequestHandler):
             #   {
             #       "models": [ list of models ]
             #   }
-            obj = {name + 's': [self.serializer.serialize_object(x) for x in obj]}
+            serialized = [self.serializer.serialize_object(x) for x in obj]
+            obj = {name + 's': serialized}
 
         else:
             raise RuntimeError("unknown type to serialize: %r" % (obj,))
@@ -303,4 +304,3 @@ class ScanImageHandler(BaseHandler):
         # Return the newly-created image object.
         self.serialize('image', dbImg)
         self.finish()
-

@@ -7,9 +7,8 @@ from peewee import Proxy
 
 APP_ROOT = os.path.dirname(os.path.realpath(__file__))
 
-#db = SqliteExtDatabase(DATABASE, threadlocals=True)
 scan_pool = ThreadPoolExecutor(max_workers=1)
-ocr_pool  = ThreadPoolExecutor(max_workers=10)
+ocr_pool = ThreadPoolExecutor(max_workers=10)
 
 # Lazily initialize the database
 db = Proxy()
