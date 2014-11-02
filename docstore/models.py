@@ -12,7 +12,7 @@ from peewee import (
 )
 from playhouse.sqlite_ext import FTSModel
 
-from .app import db
+from docstore.app import db
 
 
 class BaseModel(Model):

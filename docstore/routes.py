@@ -12,8 +12,8 @@ from peewee import (
     Model,
 )
 
-from .app import db, scan_pool
-from .models import (
+from docstore.app import db, scan_pool
+from docstore.models import (
     Image,
     Receipt,
     Tag,

@@ -1,3 +1,3 @@
-from .main import main
+from docstore.main import main
 
 main()

@@ -11,10 +11,10 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 
 import pyinsane.abstract as pyinsane
 
-from .app import db
-from . import routes as r
-from . import models
-from .util import Serializer
+from docstore.app import db
+from docstore import routes as r
+from docstore import models
+from docstore.util import Serializer
 
 
 log = logging.getLogger(__name__)
@@ -43,13 +43,14 @@ def main():
 
     if options.storage is None:
         log.error("no storage directory given")
-        return
+        sys.exit(1)
+
     storage = os.path.realpath(os.path.abspath(options.storage))
     log.info("using storage path: %s", storage)
 
     if options.database is None:
         log.error("no database path given")
-        return
+        sys.exit(1)
 
     # Create the database and init. the proxy
     real_db = SqliteExtDatabase(options.database, threadlocals=True)
