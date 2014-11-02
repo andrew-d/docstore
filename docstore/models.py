@@ -1,18 +1,37 @@
+import json
 import datetime
 
 from peewee import (
-    Model,
     CompositeKey,
     DateTimeField,
-    DecimalField,
+    Field,
     ForeignKeyField,
+    JOIN_LEFT_OUTER,
+    Model,
     PrimaryKeyField,
     TextField,
-    JOIN_LEFT_OUTER,
 )
-from playhouse.sqlite_ext import FTSModel
+from playhouse.sqlite_ext import FTSModel, SqliteExtDatabase
 
 from docstore.app import db
+
+
+class JSONField(Field):
+    db_field = 'json'
+
+    def db_value(self, value):
+        if not isinstance(value, (dict, list, tuple)):
+            raise ValueError("unknown type for JSONField: %s",
+                             type(value).__name__)
+
+        return json.dumps(value)
+
+    def python_value(self, value):
+        return json.loads(value)
+
+
+# Register the JSONField type with SQLite
+SqliteExtDatabase.register_fields({"json": "TEXT"})
 
 
 class BaseModel(Model):
@@ -44,10 +63,12 @@ class Image(BaseModel):
 class Document(BaseModel):
     """The model representing a single document"""
     id = PrimaryKeyField()
-    amount = DecimalField(null=False)
     ocr_data = TextField(null=False)
     image = ForeignKeyField(Image, null=False)
     created = DateTimeField(null=False, default=datetime.datetime.now)
+
+    # Other arbitrary data, stored as JSON.
+    metadata = JSONField(null=False)
 
 
 class FTSDocument(FTSModel):
