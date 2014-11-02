@@ -27,6 +27,9 @@ log = logging.getLogger(__name__)
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    def initialize(self):
+        self.__json_body = None
+
     @property
     def settings(self):
         return self.application.settings
@@ -34,6 +37,19 @@ class BaseHandler(tornado.web.RequestHandler):
     @property
     def serializer(self):
         return self.application.settings['serializer']
+
+    @property
+    def json_body(self):
+        if self.__json_body is None:
+            # TODO: look at real charset of request
+            body_str = self.request.body.decode('latin1')
+
+            try:
+                self.__json_body = json.loads(body_str)
+            except ValueError:
+                raise tornado.web.HTTPError(400, reason="invalid JSON")
+
+        return self.__json_body
 
     def write_error(self, status_code, **kwargs):
         """
@@ -47,7 +63,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 kwargs['message'] = 'Unknown error'
 
         kwargs["error"] = True
-        self.json(kwargs)
+        self.write_json(kwargs)
 
     def serialize(self, name, obj, *, force_serialize=False):
         """
@@ -70,9 +86,9 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             raise RuntimeError("unknown type to serialize: %r" % (obj,))
 
-        return self.json(obj)
+        return self.write_json(obj)
 
-    def json(self, obj):
+    def write_json(self, obj):
         """
         Write an object out in JSON format, setting the correct Content-Type
         """
@@ -126,15 +142,14 @@ class TagsHandler(BaseHandler):
         self.serialize('tag', Tag.select())
 
     def post(self):
-        params = json.loads(self.request.body.decode('latin1'))
-        if 'tag' not in params:
+        if 'tag' not in self.json_body:
             return self.send_error(400, message="bad request")
-        if 'name' not in params['tag']:
+        if 'name' not in self.json_body['tag']:
             return self.send_error(400, message="bad request")
 
         try:
             with db.transaction():
-                t = Tag.create(name=params['tag']['name'])
+                t = Tag.create(name=self.json_body['tag']['name'])
         except peewee.IntegrityError:
             return self.send_error(409, message="tag already exists")
 
@@ -163,7 +178,7 @@ class TagHandler(BaseHandler):
             return self.send_error(404, message="tag does not exist")
 
         tag.delete_instance()
-        self.json(True)
+        self.write_json(True)
 
 
 class DocumentsHandler(BaseHandler):
@@ -176,13 +191,12 @@ class DocumentsHandler(BaseHandler):
         self.serialize('document', Document.select())
 
     def post(self):
-        params = json.loads(self.request.body.decode('latin1'))
         try:
             # TODO: real parameters here
             with db.transaction():
                 t = Document.create(
-                    path=params['path'],
-                    amount=params['amount'],
+                    path=self.json_body['path'],
+                    amount=self.json_body['amount'],
                 )
         except peewee.IntegrityError:
             return self.send_error(409, message="document already exists")
@@ -212,7 +226,7 @@ class DocumentHandler(BaseHandler):
             return self.send_error(404, message="document does not exist")
 
         document.delete_instance()
-        self.json(True)
+        self.write_json(True)
 
 
 class ImagesHandler(BaseHandler):
