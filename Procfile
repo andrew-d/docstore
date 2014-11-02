@@ -1,2 +1,2 @@
-server:   python receipts.py --debug
+server:   python -m tornado.autoreload -m docstore --storage=./data --database=./receipts.db --debug
 ember:    cd frontend && ember serve
