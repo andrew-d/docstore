@@ -1,7 +1,36 @@
 <h2>All Tags</h2>
 
-<ul>
-    {{#each}}
-        <li>{{#link-to 'tags.show' this}}{{name}}{{/link-to}}</li>
-    {{/each}}
-</ul>
+<div class="row">
+    <div class="col-xs-12">
+        <table class="table table-bordered table-condensed">
+            <thead>
+                <th>Name</th>
+            </thead>
+            <tbody>
+                {{#each}}
+                    {{#link-to 'tags.show' this tagName="tr"}}
+                        <td>{{name}}</td>
+                    {{/link-to}}
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <h4>Add Tag</h4>
+        <form class="form-inline" role="form" {{action createTag on="submit"}}>
+            <div class="form-group">
+                <label for="new-tag" class="sr-only">Tag Name</label>
+                {{input type="text"
+                        class="form-control"
+                        id="new-tag"
+                        placeholder="Tag name"
+                        value=newTag}}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+    </div>
+</div>

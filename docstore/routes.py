@@ -127,9 +127,14 @@ class TagsHandler(BaseHandler):
 
     def post(self):
         params = json.loads(self.request.body.decode('latin1'))
+        if 'tag' not in params:
+            return self.send_error(400, message="bad request")
+        if 'name' not in params['tag']:
+            return self.send_error(400, message="bad request")
+
         try:
             with db.transaction():
-                t = Tag.create(name=params['name'])
+                t = Tag.create(name=params['tag']['name'])
         except peewee.IntegrityError:
             return self.send_error(409, message="tag already exists")
 
