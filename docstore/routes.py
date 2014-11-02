@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+import inspect
 import logging
 from functools import partial
 
@@ -76,8 +77,38 @@ class BaseHandler(tornado.web.RequestHandler):
         Write an object out in JSON format, setting the correct Content-Type
         """
         self.set_header('Content-Type', 'application/json; charset=utf-8')
-        self.set_header('Access-Control-Allow-Origin', '*')
         self.write(json.dumps(obj))
+
+    def set_default_headers(self):
+        self.set_header('Access-Control-Allow-Origin', '*')
+
+    @tornado.web.asynchronous
+    def options(self):
+        # Walk through the list of supported methods, checking if we have a
+        # function with that name defined anywhere except the base
+        # RequestHandler.
+        method_names = [m.lower() for m in self.SUPPORTED_METHODS]
+        supported = []
+        for m in method_names:
+            func = getattr(self, m)
+            if not func:
+                continue
+
+            # Walk the inheritance chain, finding the first class that defines
+            # this method.
+            defining_class = None
+            for cls in inspect.getmro(func.__self__.__class__):
+                if func.__name__ in cls.__dict__:
+                    defining_class = cls
+                    break
+
+            if defining_class is not tornado.web.RequestHandler:
+                supported.append(m.upper())
+
+        self.set_header('Access-Control-Allow-Methods', ', '.join(supported))
+        self.set_header('Access-Control-Allow-Headers', 'Accept, Content-Type')
+        self.set_status(204)
+        self.finish()
 
 
 class MainHandler(BaseHandler):
