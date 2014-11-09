@@ -45,66 +45,82 @@ def stats():
     return render_template('stats.html', stats=stats)
 
 
+
+def handle_uploaded_file(name, f, tags=None):
+    """
+    Handle an uploaded file (and an optional list of tags to apply).
+    Returns (document, exists), where 'document' is the new Document
+    object, and 'exists' indicates whether or not it already existed.
+    'document' will be None on error.
+    """
+    # Hash the file to get the filename we're using
+    fhash = hashlib.sha256()
+    fsize = 0
+    try:
+        for chunk in read_in_chunks(f):
+            fhash.update(chunk)
+            fsize += len(chunk)
+    finally:
+        f.seek(0)
+
+    app.logger.info("Got uploaded file '%s' with hash: %s",
+                    f.filename, fhash.hexdigest())
+
+    # Check if this document exists already.
+    _, ext = f.filename.rsplit('.', 1)
+    existing = (m.Document.query.
+                filter_by(filename=fhash.hexdigest()+'.'+ext).
+                first())
+    if existing is not None:
+        return existing, True
+
+    # Save with the hash as a filename.  Appending the '.' means that
+    # Flask-Uploads will automatically fill in the extension.
+    try:
+        fname = uploads.save(f, name=fhash.hexdigest() + '.')
+    except UploadNotAllowed:
+        return None, False
+
+    newdoc = m.Document(name=name,
+                        filename=fname,
+                        file_size=fsize)
+
+    if tags:
+        # TODO: proper shell splitting with quotes
+        new_tags = tags.split(' ')
+        for tagname in new_tags:
+            t = m.Tag.get_or_create(tagname)
+            newdoc.tags.append(t)
+
+    # Add a tag for the current year
+    now = datetime.datetime.utcnow().year
+    year_tag = m.Tag.get_or_create('year:' + str(now))
+    if year_tag not in newdoc.tags:
+        newdoc.tags.append(year_tag)
+
+    # All set - commit everything
+    db.session.commit()
+    return newdoc, False
+
+
 @app.route("/documents", methods=['GET', 'POST'])
 def documents():
     upload_form = f.UploadDocument()
 
     if upload_form.validate_on_submit():
-        uploaded = upload_form.file.data
-
-        # Hash the file to get the filename we're using
-        fhash = hashlib.sha256()
-        fsize = 0
-        try:
-            for chunk in read_in_chunks(uploaded):
-                fhash.update(chunk)
-                fsize += len(chunk)
-        finally:
-            uploaded.seek(0)
-
-        app.logger.info("Got uploaded file '%s' with hash: %s",
-                        uploaded.filename, fhash.hexdigest())
-
-        # Check if this document exists already.
-        _, ext = uploaded.filename.rsplit('.', 1)
-        existing = (m.Document.query.
-                    filter_by(filename=fhash.hexdigest()+'.'+ext).
-                    first())
-        if existing is not None:
+        doc, exists = handle_uploaded_file(upload_form.name.data,
+                                           upload_form.file.data,
+                                           tags=upload_form.tags.data)
+        if exists is True:
             flash('This document already exists', 'warning')
-            # TODO: redirect to this document directly
-            return redirect(url_for('documents'))
+            return redirect(url_for('single_document', id=doc.id))
 
-        # Save with the hash as a filename.  Appending the '.' means that
-        # Flask-Uploads will automatically fill in the extension.
-        try:
-            fname = uploads.save(uploaded, name=fhash.hexdigest() + '.')
-        except UploadNotAllowed:
+        if doc is None:
             flash('Upload was not allowed', 'error')
             return redirect(url_for('documents'))
 
-        newdoc = m.Document(name=upload_form.name.data,
-                            filename=fname,
-                            file_size=fsize)
-
-        if upload_form.tags.data:
-            # TODO: proper shell splitting with quotes
-            new_tags = upload_form.tags.data.split(' ')
-            for tagname in new_tags:
-                t = m.Tag.get_or_create(tagname)
-                newdoc.tags.append(t)
-
-        # Add a tag for the current year
-        now = datetime.datetime.utcnow().year
-        year_tag = m.Tag.get_or_create('year:' + str(now))
-        if year_tag not in newdoc.tags:
-            newdoc.tags.append(year_tag)
-
-        # All set - commit everything
-        db.session.commit()
-
         flash('Uploaded new document', 'success')
-        return redirect(url_for('documents'))
+        return redirect(url_for('single_document', id=doc.id))
 
     page = get_page()
     documents = (m.Document.query.
