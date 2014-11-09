@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% if title %}
+      <title>{{ title }} - docstore</title>
+    {% else %}
+      <title>docstore</title>
+    {% endif %}
+
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/css/app.css" rel="stylesheet" media="screen">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    {# Note: we can't put this into an external template, or it won't work #}
+    {% set navigation_bar = [
+        ('/',           'index',      'Home'),
+        ('/stats',      'stats',      'Statistics'),
+    ] -%}
+
+    {% set active_page = active_page|default('index') -%}
+
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed"
+                  data-toggle="collapse" data-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{{ url_for('index') }}">docstore</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            {% for href, id, caption in navigation_bar %}
+              <li{% if id == active_page %} class="active"{% endif %}>
+                <a href="{{ href }}">{{ caption|e }}</a>
+              </li>
+            {% endfor %}
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+
+    {# Global scripts #}
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

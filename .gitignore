@@ -4,3 +4,7 @@
 # Data files/directories
 /data
 *.db
+
+# Installed or generated dependencies
+node_modules
+bower_components

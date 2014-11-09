@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% set active_page = "stats" %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-xs-12">
+      There are {{ stats['num_documents'] }} documents in the store.
+    </div>
+  </div>
+{% endblock %}
