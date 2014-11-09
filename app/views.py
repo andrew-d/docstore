@@ -1,7 +1,7 @@
 import hashlib
 import datetime
 
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, abort
 from flask.ext.uploads import UploadNotAllowed
 
 from . import app, db, uploads
@@ -22,17 +22,34 @@ def read_in_chunks(infile, chunk_size=1*1024*1024):
 
 
 def get_page():
+    """
+    Helper function to get the current page # from a request.
+    """
     try:
         return int(request.args.get('page') or 1)
     except ValueError:
-        # TODO
-        raise
+        abort(400)
 
 
 @app.route("/")
 @app.route("/index")
 def index():
-    return render_template('index.html')
+    return render_template('index.html',)
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    return render_template('error.html', error=error), 400
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('error.html', error=error), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template('error.html', error=error), 500
 
 
 @app.route("/stats")
