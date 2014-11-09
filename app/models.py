@@ -15,9 +15,13 @@ class Document(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, index=True, unique=True)
-    filename = db.Column(db.String, nullable=False, index=True, unique=True)
     created = db.Column(db.DateTime, nullable=False,
                         default=datetime.datetime.utcnow)
+
+    # Information about the associated file
+    filename = db.Column(db.String, nullable=False, index=True, unique=True)
+    file_size = db.Column(db.Integer, nullable=False)
+
     tags = db.relationship('Tag', secondary=tags_rel,
                            backref=db.backref('documents', lazy='dynamic'))
 

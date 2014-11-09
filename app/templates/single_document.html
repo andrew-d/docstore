@@ -26,6 +26,10 @@
             <td>Created</td>
             <td>{{ momentjs(document.created).calendar() }}</td>
           </tr>
+          <tr>
+            <td>Size</td>
+            <td>{{ document.file_size | humansize }}</td>
+          </tr>
         </tbody>
       </table>
 

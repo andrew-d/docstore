@@ -19,6 +19,7 @@
       <table class="table table-striped table-bordered table-condensed">
         <thead>
           <th>Name</th>
+          <th>Size</th>
           <th>Created</th>
           <th>Tags</th>
         </thead>
@@ -27,6 +28,7 @@
             <tr class="clickable-row"
                 data-url="{{ url_for('single_document', id=document.id) }}">
               <td>{{ document.name }}</td>
+              <td>{{ document.file_size | humansize }}</td>
               <td>{{ momentjs(document.created).calendar() }}</td>
               <td>{{ document.tags | join(', ', attribute='name') }}</td>
             </tr>

@@ -1,3 +1,4 @@
+import humanize
 from jinja2 import Markup
 
 from . import app
@@ -37,3 +38,7 @@ class momentjs(object):
 
     def fromNow(self):
         return self.render("fromNow()")
+
+@app.template_filter('humansize')
+def humansize(s, binary=True):
+    return humanize.naturalsize(s, binary=binary)

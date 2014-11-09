@@ -54,9 +54,11 @@ def documents():
 
         # Hash the file to get the filename we're using
         fhash = hashlib.sha256()
+        fsize = 0
         try:
             for chunk in read_in_chunks(uploaded):
                 fhash.update(chunk)
+                fsize += len(chunk)
         finally:
             uploaded.seek(0)
 
@@ -82,7 +84,8 @@ def documents():
             return redirect(url_for('documents'))
 
         newdoc = m.Document(name=upload_form.name.data,
-                            filename=fname)
+                            filename=fname,
+                            file_size=fsize)
 
         if upload_form.tags.data:
             # TODO: proper shell splitting with quotes
