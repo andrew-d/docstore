@@ -15,7 +15,10 @@ def pluralize(number, singular = '', plural = 's'):
 @app.template_global('momentjs')
 class momentjs(object):
     """
-    A global function that uses moment.js to make pretty times.
+    A Jinja2 global function that uses moment.js to make pretty times.
+    Note that, while we *could* do this with humanize, moment.js allows us to
+    ensure that the times are local to the user's browser (e.g. if we wanted
+    to run docstore on a server not in the same time zone).
 
     Taken from:
         http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xiii-dates-and-times

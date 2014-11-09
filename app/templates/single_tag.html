@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% set active_page = "tags" %}
+{% from 'macros/documents_table.html' import documents_table %}
 
 {% block content %}
   <div class="row">
@@ -11,49 +12,8 @@
   <div class="row">
     <div class="col-xs-12">
       <h3>Tagged Documents</h3>
-      <ul>
-        {% for doc in tag_documents.items %}
-          <li>
-            <a href="{{ url_for('single_document', id=doc.id) }}">
-              {{ doc.name }}
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
 
-      <div class="text-center">
-        <nav>
-          <ul class="pagination">
-            <li {% if not tag_documents.has_prev %}class="disabled"{% endif %}>
-              <a href="{{ url_for('documents', page=tag_documents.prev_num) }}">&laquo;</a>
-            </li>
-
-            {% if tag_documents.total == 0 %}
-              <li class="active">
-                <a href="{{ url_for('single_tag', id=tag.id, page=1) }}">1 <span class="sr-only">(current)</span></a>
-              </li>
-            {% endif %}
-
-            {% for page in tag_documents.iter_pages() %}
-              {% if page %}
-                {% if page != tag_documents.page %}
-                  <li><a href="{{ url_for('single_tag', id=tag.id, page=page) }}">{{ page }}</a></li>
-                {% else %}
-                  <li class="active">
-                    <a href="{{ url_for('single_tag', id=tag.id, page=page) }}">{{ page }} <span class="sr-only">(current)</span></a>
-                  </li>
-                {% endif %}
-              {% else %}
-                <li class="disabled"><a href="javascript: void(0)">...</a></li>
-              {% endif %}
-            {% endfor %}
-
-            <li {% if not tag_documents.has_next %}class="disabled"{% endif %}>
-              <a href="{{ url_for('single_tag', id=tag.id, page=tag_documents.next_num) }}">&raquo;</a>
-            </li>
-          </ul>
-        </nav>
-
+      {{ documents_table(tag_documents) }}
     </div>
   </div>
 {% endblock %}
