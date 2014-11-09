@@ -21,12 +21,12 @@ log = logging.getLogger(__name__)
 
 
 def get_device():
-    if options.debug:
-        log.debug("scanning for devices")
-        devices = pyinsane.get_devices()
-        for i, dev in enumerate(devices):
-            log.info("found device %d: %s/%s/%s",
-                     i, dev.name, dev.vendor, dev.model)
+    #if options.debug:
+    #    log.debug("scanning for devices")
+    #    devices = pyinsane.get_devices()
+    #    for i, dev in enumerate(devices):
+    #        log.info("found device %d: %s/%s/%s",
+    #                 i, dev.name, dev.vendor, dev.model)
 
     if options.device is None:
         log.warn("no device specified, scanning will be unavailable")
@@ -67,12 +67,13 @@ def main():
         (r"/",                      r.MainHandler),
         (r"/api/tags",              r.TagsHandler),
         (r"/api/tags/(\d+)",        r.TagHandler),
-        (r"/api/documents",          r.DocumentsHandler),
-        (r"/api/documents/(\d+)",    r.DocumentHandler),
+        (r"/api/documents",         r.DocumentsHandler),
+        (r"/api/documents/(\d+)",   r.DocumentHandler),
         (r"/api/images",            r.ImagesHandler),
         (r"/api/images/(\d+)",      r.ImageHandler),
         (r"/api/images/(\d+)/data", r.ImageDataHandler),
         (r"/api/images/scan",       r.ScanImageHandler),
+        (r"/api/images/upload",     r.UploadImageHandler),
     ], **settings)
 
     # Create database tables

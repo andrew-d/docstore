@@ -6,5 +6,8 @@ export default Ember.Controller.extend({
             // We kick off a scan by transitioning to the 'scan' route
             this.transitionToRoute("scan");
         },
+        onUpload: function() {
+            console.log("should upload");
+        },
     },
 });

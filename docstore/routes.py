@@ -354,3 +354,11 @@ class ScanImageHandler(BaseHandler):
         # Return the newly-created image object.
         self.serialize('image', dbImg)
         self.finish()
+
+
+class UploadImageHandler(BaseHandler):
+    def post(self):
+        log.info("files = %r", self.request.files)
+
+        if 'image' not in self.request.files:
+            return self.send_error(400, message="no image given")
