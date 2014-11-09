@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% set active_page = "documents" %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-xs-12">
+      <h2>Document '{{ document.name }}'</h2>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-8">
+      <h3>Contents</h3>
+      TKTK contents go here
+    </div>
+
+    <div class="col-xs-4">
+      <h3>Metadata</h3>
+      <table class="table">
+        <thead>
+          <th>Name</th>
+          <th>Value</th>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Created</td>
+            <td>{{ momentjs(document.created).calendar() }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Tags</h3>
+      <table class="table">
+        <tbody>
+          {% for tag in document.tags %}
+            <tr>
+              <td>
+                <a href="{{ url_for('single_tag', id=tag.id) }}">
+                  {{ tag.name }}
+                </a>
+              </td>
+              <td>
+                <button type="button" class="btn btn-danger btn-xs">
+                  <span class="glyphicon glyphicon-trash"></span>
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h4>Add Tags</h4>
+      <form action="{{ url_for('single_document', id=document.id) }}"
+            method="POST"
+            enctype="multipart/form-data"
+            class="form-inline"
+            role="form">
+        <input type="text" class="form-control" placeholder="new tags here">
+        <button class="btn btn-primary">Add</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

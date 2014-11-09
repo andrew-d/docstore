@@ -3,6 +3,7 @@
 
 # Data files/directories
 /data
+/uploads
 *.db
 
 # Installed or generated dependencies
