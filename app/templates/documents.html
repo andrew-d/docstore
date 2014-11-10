@@ -33,11 +33,18 @@
       <form action="{{ url_for('documents') }}" method="POST" enctype="multipart/form-data" role="form">
         {{ upload_form.hidden_tag() }}
         {{ render_field(upload_form.name, label_visible=True, placeholder='Receipt for widgets...') }}
-        {{ render_field(upload_form.file, label_visible=False) }}
         {{ render_field(upload_form.tags, label_visible=True, placeholder='Enter space-seperated tags') }}
+        {{ render_field(upload_form.file, label_visible=False) }}
 
-        <button class="btn btn-primary">Upload</button>
-        <button class="btn btn-success">Scan New</button>
+        {{ upload_form.upload(class_="btn btn-primary") }}
+        {{ upload_form.scan(class_="btn btn-success") }}
+
+        <!--
+        <input type="submit" class="btn btn-primary" name="upload" value="Upload">
+        <input type="submit" class="btn btn-success" name="scan" value="Scan New">
+        <button class="btn btn-primary" name='upload'>Upload</button>
+        <button class="btn btn-success" name='scan'>Scan New</button>
+        -->
       </form>
     </div>
   </div>

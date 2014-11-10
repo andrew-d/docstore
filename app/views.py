@@ -1,10 +1,20 @@
+import os
 import hashlib
 import datetime
+import mimetypes
 
-from flask import render_template, request, redirect, url_for, flash, abort
-from flask.ext.uploads import UploadNotAllowed
+from flask import (
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for
+)
+from werkzeug import secure_filename
 
-from . import app, db, uploads
+from . import app, db
 from . import models as m
 from . import forms as f
 
@@ -83,21 +93,18 @@ def handle_uploaded_file(name, f, tags=None):
     app.logger.info("Got uploaded file '%s' with hash: %s",
                     f.filename, fhash.hexdigest())
 
+    # Generate needed filenames
+    sfname = secure_filename(f.filename)
+    _, ext = os.path.splitext(sfname)
+    fname = fhash.hexdigest() + ext
+
     # Check if this document exists already.
-    _, ext = f.filename.rsplit('.', 1)
-    existing = (m.Document.query.
-                filter_by(filename=fhash.hexdigest()+'.'+ext).
-                first())
+    existing = m.Document.query.filter_by(filename=fname).first()
     if existing is not None:
         return existing, True
 
-    # Save with the hash as a filename.  Appending the '.' means that
-    # Flask-Uploads will automatically fill in the extension.
-    try:
-        fname = uploads.save(f, name=fhash.hexdigest() + '.')
-    except UploadNotAllowed:
-        return None, False
-
+    # Save the file in our file storage, create database object
+    f.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
     newdoc = m.Document(name=name,
                         filename=fname,
                         file_size=fsize)
@@ -125,19 +132,22 @@ def documents():
     upload_form = f.UploadDocument()
 
     if upload_form.validate_on_submit():
-        doc, exists = handle_uploaded_file(upload_form.name.data,
-                                           upload_form.file.data,
-                                           tags=upload_form.tags.data)
-        if exists is True:
-            flash('This document already exists', 'warning')
+        if upload_form.upload.data:
+            doc, exists = handle_uploaded_file(upload_form.name.data,
+                                               upload_form.file.data,
+                                               tags=upload_form.tags.data)
+            if exists is True:
+                flash('This document already exists', 'warning')
+                return redirect(url_for('single_document', id=doc.id))
+
+            if doc is None:
+                flash('Upload was not allowed', 'error')
+                return redirect(url_for('documents'))
+
+            flash('Uploaded new document', 'success')
             return redirect(url_for('single_document', id=doc.id))
-
-        if doc is None:
-            flash('Upload was not allowed', 'error')
-            return redirect(url_for('documents'))
-
-        flash('Uploaded new document', 'success')
-        return redirect(url_for('single_document', id=doc.id))
+        elif upload_form.scan.data:
+            app.logger.info("Would scan a new document")
 
     page = get_page()
     documents = (m.Document.query.
@@ -155,6 +165,12 @@ def single_document(id):
     doc = m.Document.query.get_or_404(id)
     return render_template('single_document.html',
                            document=doc)
+
+
+@app.route("/documents/<int:id>/content")
+def single_document_data(id):
+    doc = m.Document.query.get_or_404(id)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], doc.filename)
 
 
 @app.route("/tags")
