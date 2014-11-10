@@ -22,6 +22,9 @@ class Document(db.Model):
     filename = db.Column(db.String, nullable=False, index=True, unique=True)
     file_size = db.Column(db.Integer, nullable=False)
 
+    # General metadata
+    meta = db.Column(db.PickleType, nullable=False, default={})
+
     tags = db.relationship('Tag', secondary=tags_rel,
                            backref=db.backref('documents', lazy='dynamic'))
 

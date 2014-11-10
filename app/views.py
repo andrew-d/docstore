@@ -17,6 +17,7 @@ from werkzeug import secure_filename
 from . import app, db
 from . import models as m
 from . import forms as f
+from . import scanner
 
 
 def read_in_chunks(infile, chunk_size=1*1024*1024):
@@ -69,7 +70,9 @@ def stats():
         'num_tags':      m.Tag.query.count(),
     }
 
-    return render_template('stats.html', stats=stats)
+    return render_template('stats.html',
+                           stats=stats,
+                           scanners=app.config['scanners'].scanner_info)
 
 
 
@@ -127,9 +130,55 @@ def handle_uploaded_file(name, f, tags=None):
     return newdoc, False
 
 
+def scan_document(name, scanner, tags=None):
+    """
+    As per handle_uploaded_file, except that we retrieve an image
+    from an attached scanner.
+    """
+    data, fhash, fsize = scanner.scan_image()
+    fname = fhash + '.png'
+
+    # Check if this document exists already.
+    existing = m.Document.query.filter_by(filename=fname).first()
+    if existing is not None:
+        return existing, True
+
+    # Save the file in our file storage, create database object
+    scanned_image.save(
+        os.path.join(app.config['UPLOAD_FOLDER'], fname),
+        'PNG'
+    )
+    newdoc = m.Document(name=name,
+                        filename=fname,
+                        file_size=fsize)
+
+    if tags:
+        # TODO: proper shell splitting with quotes
+        new_tags = tags.split(' ')
+        for tagname in new_tags:
+            t = m.Tag.get_or_create(tagname)
+            newdoc.tags.append(t)
+
+    # Add a tag for the current year
+    now = datetime.datetime.utcnow().year
+    year_tag = m.Tag.get_or_create('year:' + str(now))
+    if year_tag not in newdoc.tags:
+        newdoc.tags.append(year_tag)
+
+    # All set - commit everything
+    db.session.commit()
+    return newdoc, False
+
+
 @app.route("/documents", methods=['GET', 'POST'])
 def documents():
     upload_form = f.UploadDocument()
+
+    # Fill in the choices for scanner names
+    upload_form.scanner_name.choices = [
+        (d.name, d.vendor + ' - ' + d.model)
+        for d in app.config['scanners'].scanner_info
+    ]
 
     if upload_form.validate_on_submit():
         if upload_form.upload.data:
@@ -146,8 +195,26 @@ def documents():
 
             flash('Uploaded new document', 'success')
             return redirect(url_for('single_document', id=doc.id))
+
         elif upload_form.scan.data:
-            app.logger.info("Would scan a new document")
+            scanner_name = upload_form.scanner_name.data
+            app.logger.info("Scanning document with scanner %s", scanner_name)
+
+            doc, exists = scan_document(upload_form.name.data,
+                                        upload_form.scanner_name.data,
+                                        tags=upload_form.tags.data)
+            if exists is True:
+                flash('This document already exists', 'warning')
+                return redirect(url_for('single_document', id=doc.id))
+
+            if doc is None:
+                flash('Could not scan the document', 'error')
+                return redirect(url_for('documents'))
+
+            flash('Scanned new document', 'success')
+            return redirect(url_for('single_document', id=doc.id))
+
+
 
     page = get_page()
     documents = (m.Document.query.
@@ -157,7 +224,8 @@ def documents():
 
     return render_template('documents.html',
                            upload_form=upload_form,
-                           documents=documents)
+                           documents=documents,
+                           have_scanner=app.config['scanners'].have_scanner)
 
 
 @app.route("/documents/<int:id>", methods=['GET', 'POST'])

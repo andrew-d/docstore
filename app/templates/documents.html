@@ -36,8 +36,12 @@
         {{ render_field(upload_form.tags, label_visible=True, placeholder='Enter space-seperated tags') }}
         {{ render_field(upload_form.file, label_visible=False) }}
 
+        {% if have_scanner %}
+          {{ render_field(upload_form.scanner_name, label_visible=True) }}
+        {% endif %}
+
         {{ upload_form.upload(class_="btn btn-primary") }}
-        {{ upload_form.scan(class_="btn btn-success") }}
+        {{ upload_form.scan(class_="btn btn-success", disabled=(not have_scanner)) }}
 
         <!--
         <input type="submit" class="btn btn-primary" name="upload" value="Upload">

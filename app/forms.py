@@ -1,19 +1,19 @@
 from flask.ext.wtf import Form
 from flask.ext.wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, Optional
+from wtforms import StringField, SubmitField, SelectField
+from wtforms.validators import Required, DataRequired, Optional
 
 
-class FileRequiredIf(FileRequired):
+class RequiredIf(Required):
     """
-    Validate that a file exists only if another field is set and has
+    Validate that a field exists only if another field is set and has
     a truthy value.  Adapted from::
         https://stackoverflow.com/questions/8463209/how-to-make-a-field-conditionally-optional-in-wtforms
     """
 
     def __init__(self, other_field, *args, **kwargs):
         self.other_field = other_field
-        super(FileRequired, self).__init__(*args, **kwargs)
+        super(RequiredIf, self).__init__(*args, **kwargs)
 
     def __call__(self, form, field):
         other_field = form._fields.get(self.other_field)
@@ -21,7 +21,25 @@ class FileRequiredIf(FileRequired):
             raise Exception('no field named "%s" in form' % self.other_field)
 
         if bool(other_field.data):
-            super(FileRequired, self).__call__(form, field)
+            super(RequiredIf, self).__call__(form, field)
+
+
+class FileRequiredIf(FileRequired):
+    """
+    As RequiredIf, but for FileFields instead.
+    """
+
+    def __init__(self, other_field, *args, **kwargs):
+        self.other_field = other_field
+        super(FileRequiredIf, self).__init__(*args, **kwargs)
+
+    def __call__(self, form, field):
+        other_field = form._fields.get(self.other_field)
+        if other_field is None:
+            raise Exception('no field named "%s" in form' % self.other_field)
+
+        if bool(other_field.data):
+            super(FileRequiredIf, self).__call__(form, field)
 
 
 ALLOWED_EXTS = (
@@ -42,4 +60,7 @@ class UploadDocument(Form):
     file = FileField('file', validators=[
         FileRequiredIf(other_field='upload'),
         FileAllowed(ALLOWED_EXTS, 'Invalid document type'),
+    ])
+    scanner_name = SelectField("Scanner Name", validators=[
+        RequiredIf("scan"),
     ])

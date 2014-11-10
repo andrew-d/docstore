@@ -4,8 +4,31 @@
 {% block content %}
   <div class="row">
     <div class="col-xs-12">
+      <h2>Statistics</h2>
       There are {{ stats['num_documents'] }} document(s) in the store.<br/>
       There are {{ stats['num_tags'] }} tag(s) in the store.
+
+      <h3>Scanners</h3>
+      {% if scanners %}
+        <table class="table table-condensed">
+          <thead>
+            <th>Name</th>
+            <th>Vendor</th>
+            <th>Model</th>
+          </thead>
+          <tbody>
+            {% for scanner in scanners %}
+              <tr>
+                <td>{{ scanner.name }}</td>
+                <td>{{ scanner.vendor }}</td>
+                <td>{{ scanner.model }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p><strong>No scanners found</strong></p>
+      {% endif %}
     </div>
   </div>
 {% endblock %}
