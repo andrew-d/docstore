@@ -1,7 +1,7 @@
 from flask.ext.wtf import Form
 from flask.ext.wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import StringField, SubmitField, SelectField
-from wtforms.validators import Required, DataRequired, Optional
+from wtforms.validators import Required, DataRequired
 
 
 class RequiredIf(Required):
@@ -50,17 +50,38 @@ ALLOWED_EXTS = (
 )
 
 
-class UploadDocument(Form):
+class AddTagsForm(Form):
+    tags = StringField('Tags to apply', validators=[DataRequired()])
+    add = SubmitField('Add Tags')
+
+
+class UploadFileForm(Form):
+    file = FileField('file', validators=[
+        FileAllowed(ALLOWED_EXTS, 'Invalid document type'),
+    ])
+    upload = SubmitField('Upload')
+
+
+class ScanFileForm(Form):
+    scanner_name = SelectField("Scanner Name", validators=[
+        RequiredIf("scan"),
+    ])
+    scan = SubmitField('Scan New')
+
+
+class UploadDocumentForm(UploadFileForm):
+    """
+    Extension of uploading a file that also requires us to specify a document
+    name, and allows applying tags.
+    """
     name = StringField('Document name', validators=[
         DataRequired(),
     ])
     tags = StringField('Tags to apply', validators=[])
-    upload = SubmitField('Upload')
-    scan = SubmitField('Scan New')
-    file = FileField('file', validators=[
-        FileRequiredIf(other_field='upload'),
-        FileAllowed(ALLOWED_EXTS, 'Invalid document type'),
+
+
+class ScanDocumentForm(ScanFileForm):
+    name = StringField('Document name', validators=[
+        DataRequired(),
     ])
-    scanner_name = SelectField("Scanner Name", validators=[
-        RequiredIf("scan"),
-    ])
+    tags = StringField('Tags to apply', validators=[])

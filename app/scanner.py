@@ -1,4 +1,5 @@
 import signal
+import hashlib
 import multiprocessing
 from io import BytesIO
 from collections import namedtuple
@@ -28,7 +29,6 @@ def _scan_image(scanner_name):
         data = memf.getvalue()
 
     fhash = hashlib.sha256(data).hexdigest()
-    fsize = len(data)
 
     return data, fhash, len(data)
 

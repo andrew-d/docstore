@@ -10,6 +10,17 @@ tags_rel = db.Table("tags_rel",
 )
 
 
+class File(db.Model):
+    __tablename__ = "files"
+
+    id = db.Column(db.Integer, primary_key=True)
+    size = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String, nullable=False, index=True, unique=True)
+    created = db.Column(db.DateTime, nullable=False,
+                        default=datetime.datetime.utcnow)
+    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+
+
 class Document(db.Model):
     __tablename__ = "documents"
 
@@ -18,9 +29,8 @@ class Document(db.Model):
     created = db.Column(db.DateTime, nullable=False,
                         default=datetime.datetime.utcnow)
 
-    # Information about the associated file
-    filename = db.Column(db.String, nullable=False, index=True, unique=True)
-    file_size = db.Column(db.Integer, nullable=False)
+    # Associated files
+    files = db.relationship('File', backref='document', lazy='dynamic')
 
     # General metadata
     meta = db.Column(db.PickleType, nullable=False, default={})
@@ -30,6 +40,20 @@ class Document(db.Model):
 
     def __repr__(self):
         return "<Document %r>" % (self.name,)
+
+    def apply_tags(self, tags):
+        if not tags:
+            return self
+
+        # TODO: proper shell splitting with quotes
+        new_tags = tags.split(' ')
+        for tagname in new_tags:
+            t = Tag.get_or_create(tagname)
+
+            if t not in self.tags:
+                self.tags.append(t)
+
+        return self
 
 
 class Tag(db.Model):

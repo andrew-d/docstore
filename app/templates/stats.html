@@ -5,8 +5,12 @@
   <div class="row">
     <div class="col-xs-12">
       <h2>Statistics</h2>
-      There are {{ stats['num_documents'] }} document(s) in the store.<br/>
-      There are {{ stats['num_tags'] }} tag(s) in the store.
+      There are {{ num_documents }} document(s) in the store.<br/>
+      There are {{ num_files }} files(s) saved, totalling
+      <span title="{{ total_size | intcomma }} bytes">
+        {{ total_size | humansize }}.
+      </span><br/>
+      There are {{ num_tags }} tag(s) in the store.
 
       <h3>Scanners</h3>
       {% if scanners %}

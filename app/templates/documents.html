@@ -30,26 +30,52 @@
 
   <div class="row">
     <div class="col-md-6">
-      <form action="{{ url_for('documents') }}" method="POST" enctype="multipart/form-data" role="form">
-        {{ upload_form.hidden_tag() }}
-        {{ render_field(upload_form.name, label_visible=True, placeholder='Receipt for widgets...') }}
-        {{ render_field(upload_form.tags, label_visible=True, placeholder='Enter space-seperated tags') }}
-        {{ render_field(upload_form.file, label_visible=False) }}
 
-        {% if have_scanner %}
-          {{ render_field(upload_form.scanner_name, label_visible=True) }}
-        {% endif %}
+      <div role="tabpanel">
+        <ul id="actionsTabs" class="nav nav-tabs" role="tablist" style="margin-bottom: 15px">
+          <li role="presentation" class="active">
+            <a href="#upload" role="tab" data-toggle="tab">Upload File</a>
+          </li>
+          <li role="presentation">
+            <a href="#scan" role="tab" data-toggle="tab">Scan File</a>
+          </li>
+        </ul>
 
-        {{ upload_form.upload(class_="btn btn-primary") }}
-        {{ upload_form.scan(class_="btn btn-success", disabled=(not have_scanner)) }}
+        <div class="tab-content">
+          <div role="tabpanel" class="tab-pane active" id="upload">
+            <form action="{{ url_for('documents_upload') }}"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  class="form"
+                  role="form">
+              {{ upload_form.hidden_tag() }}
+              {{ render_field(upload_form.name, label_visible=True, placeholder='Receipt for widgets...') }}
+              {{ render_field(upload_form.tags, label_visible=True, placeholder='Enter space-seperated tags') }}
+              {{ render_field(upload_form.file, label_visible=False) }}
+              {{ upload_form.upload(class_="btn btn-primary") }}
+            </form>
+          </div>
 
-        <!--
-        <input type="submit" class="btn btn-primary" name="upload" value="Upload">
-        <input type="submit" class="btn btn-success" name="scan" value="Scan New">
-        <button class="btn btn-primary" name='upload'>Upload</button>
-        <button class="btn btn-success" name='scan'>Scan New</button>
-        -->
-      </form>
+          <div role="tabpanel" class="tab-pane" id="scan">
+            {% if have_scanner %}
+              <form action="{{ url_for('documents_scan') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="form"
+                    role="form">
+                {{ scan_form.hidden_tag() }}
+                {{ render_field(scan_form.name, label_visible=True, placeholder='Receipt for widgets...') }}
+                {{ render_field(scan_form.tags, label_visible=True, placeholder='Enter space-seperated tags') }}
+                {{ render_field(scan_form.scanner_name, label_visible=True) }}
+                {{ scan_form.scan(class_="btn btn-primary") }}
+              </form>
+            {% else %}
+              <p><strong>No scanners available</strong></p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 {% endblock %}

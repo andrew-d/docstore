@@ -1,7 +1,7 @@
 import os
 import hashlib
 import datetime
-import mimetypes
+#import mimetypes
 
 from flask import (
     abort,
@@ -13,6 +13,7 @@ from flask import (
     url_for
 )
 from werkzeug import secure_filename
+from sqlalchemy.sql import func
 
 from . import app, db
 from . import models as m
@@ -42,6 +43,14 @@ def get_page():
         abort(400)
 
 
+def fill_scan_form(scan_form):
+    # Fill in the choices for scanner names
+    scan_form.scanner_name.choices = [
+        (d.name, d.vendor + ' - ' + d.model)
+        for d in app.config['scanners'].scanner_info
+    ]
+
+
 @app.route("/")
 @app.route("/index")
 def index():
@@ -65,23 +74,23 @@ def internal_server_error(error):
 
 @app.route("/stats")
 def stats():
-    stats = {
+    size_query = db.session.query(func.sum(m.File.size).label("total_size"))
+    args = {
         'num_documents': m.Document.query.count(),
+        'num_files':     m.File.query.count(),
+        'total_size':    size_query.first().total_size,
         'num_tags':      m.Tag.query.count(),
+        'scanners':      app.config['scanners'].scanner_info,
     }
 
-    return render_template('stats.html',
-                           stats=stats,
-                           scanners=app.config['scanners'].scanner_info)
+    return render_template('stats.html', **args)
 
 
-
-def handle_uploaded_file(name, f, tags=None):
+def handle_uploaded_file(f):
     """
-    Handle an uploaded file (and an optional list of tags to apply).
-    Returns (document, exists), where 'document' is the new Document
-    object, and 'exists' indicates whether or not it already existed.
-    'document' will be None on error.
+    Handle an uploaded file.  Returns (file, exists), where 'file' is the new
+    File object, and 'exists' indicates whether or not it already existed.
+    'file' will be None on error.
     """
     # Hash the file to get the filename we're using
     fhash = hashlib.sha256()
@@ -101,120 +110,49 @@ def handle_uploaded_file(name, f, tags=None):
     _, ext = os.path.splitext(sfname)
     fname = fhash.hexdigest() + ext
 
-    # Check if this document exists already.
-    existing = m.Document.query.filter_by(filename=fname).first()
+    # Check if this file exists already.
+    existing = m.File.query.filter_by(name=fname).first()
     if existing is not None:
         return existing, True
 
     # Save the file in our file storage, create database object
     f.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-    newdoc = m.Document(name=name,
-                        filename=fname,
-                        file_size=fsize)
-
-    if tags:
-        # TODO: proper shell splitting with quotes
-        new_tags = tags.split(' ')
-        for tagname in new_tags:
-            t = m.Tag.get_or_create(tagname)
-            newdoc.tags.append(t)
-
-    # Add a tag for the current year
-    now = datetime.datetime.utcnow().year
-    year_tag = m.Tag.get_or_create('year:' + str(now))
-    if year_tag not in newdoc.tags:
-        newdoc.tags.append(year_tag)
+    newfile = m.File(name=fname, size=fsize)
 
     # All set - commit everything
     db.session.commit()
-    return newdoc, False
+    return newfile, False
 
 
-def scan_document(name, scanner, tags=None):
+def scan_file(scanner_name):
     """
     As per handle_uploaded_file, except that we retrieve an image
     from an attached scanner.
     """
-    data, fhash, fsize = scanner.scan_image()
+    data, fhash, fsize = scanner.scan_image(scanner_name)
     fname = fhash + '.png'
 
     # Check if this document exists already.
-    existing = m.Document.query.filter_by(filename=fname).first()
+    existing = m.File.query.filter_by(name=fname).first()
     if existing is not None:
         return existing, True
 
     # Save the file in our file storage, create database object
-    scanned_image.save(
-        os.path.join(app.config['UPLOAD_FOLDER'], fname),
-        'PNG'
-    )
-    newdoc = m.Document(name=name,
-                        filename=fname,
-                        file_size=fsize)
+    with open(os.path.join(app.config['UPLOAD_FOLDER'], fname), 'wb') as f:
+        f.write(data)
 
-    if tags:
-        # TODO: proper shell splitting with quotes
-        new_tags = tags.split(' ')
-        for tagname in new_tags:
-            t = m.Tag.get_or_create(tagname)
-            newdoc.tags.append(t)
-
-    # Add a tag for the current year
-    now = datetime.datetime.utcnow().year
-    year_tag = m.Tag.get_or_create('year:' + str(now))
-    if year_tag not in newdoc.tags:
-        newdoc.tags.append(year_tag)
+    newfile = m.File(name=fname, size=fsize)
 
     # All set - commit everything
     db.session.commit()
-    return newdoc, False
+    return newfile, False
 
 
-@app.route("/documents", methods=['GET', 'POST'])
+@app.route("/documents")
 def documents():
-    upload_form = f.UploadDocument()
-
-    # Fill in the choices for scanner names
-    upload_form.scanner_name.choices = [
-        (d.name, d.vendor + ' - ' + d.model)
-        for d in app.config['scanners'].scanner_info
-    ]
-
-    if upload_form.validate_on_submit():
-        if upload_form.upload.data:
-            doc, exists = handle_uploaded_file(upload_form.name.data,
-                                               upload_form.file.data,
-                                               tags=upload_form.tags.data)
-            if exists is True:
-                flash('This document already exists', 'warning')
-                return redirect(url_for('single_document', id=doc.id))
-
-            if doc is None:
-                flash('Upload was not allowed', 'error')
-                return redirect(url_for('documents'))
-
-            flash('Uploaded new document', 'success')
-            return redirect(url_for('single_document', id=doc.id))
-
-        elif upload_form.scan.data:
-            scanner_name = upload_form.scanner_name.data
-            app.logger.info("Scanning document with scanner %s", scanner_name)
-
-            doc, exists = scan_document(upload_form.name.data,
-                                        upload_form.scanner_name.data,
-                                        tags=upload_form.tags.data)
-            if exists is True:
-                flash('This document already exists', 'warning')
-                return redirect(url_for('single_document', id=doc.id))
-
-            if doc is None:
-                flash('Could not scan the document', 'error')
-                return redirect(url_for('documents'))
-
-            flash('Scanned new document', 'success')
-            return redirect(url_for('single_document', id=doc.id))
-
-
+    upload_form = f.UploadDocumentForm()
+    scan_form = f.ScanDocumentForm()
+    fill_scan_form(scan_form)
 
     page = get_page()
     documents = (m.Document.query.
@@ -223,22 +161,145 @@ def documents():
                  )
 
     return render_template('documents.html',
-                           upload_form=upload_form,
                            documents=documents,
+                           upload_form=upload_form,
+                           scan_form=scan_form,
                            have_scanner=app.config['scanners'].have_scanner)
+
+
+@app.route("/documents/upload", methods=['POST'])
+def documents_upload():
+    upload_form = f.UploadDocumentForm()
+
+    if upload_form.validate_on_submit():
+        nfile, exists = handle_uploaded_file(upload_form.file.data)
+        if exists is True:
+            flash('This file already exists', 'warning')
+            return redirect(url_for('documents'))
+            # TODO: make this work
+            #return redirect(url_for('single_document', id=doc.id))
+
+        if nfile is None:
+            flash('Upload was not allowed', 'error')
+            return redirect(url_for('documents'))
+
+        # Create a new document with this file instance
+        doc = m.Document(name=upload_form.name.data)
+        nfile.document = doc
+
+        # Apply tags
+        doc.apply_tags(upload_form.tags.data)
+
+        # Add a tag for the current year
+        now = datetime.datetime.utcnow().year
+        year_tag = m.Tag.get_or_create('year:' + str(now))
+        if year_tag not in doc.tags:
+            doc.tags.append(year_tag)
+
+        # Add it all and commit
+        db.session.add(nfile)
+        db.session.add(doc)
+        db.session.commit()
+
+        flash('Uploaded new document', 'success')
+        return redirect(url_for('single_document', id=doc.id))
+
+    # TODO
+    abort(501)
+
+
+@app.route("/documents/scan", methods=['POST'])
+def documents_scan():
+    scan_form = f.ScanDocumentForm()
+    fill_scan_form(scan_form)
+
+    if scan_form.validate_on_submit():
+        scanner_name = scan_form.scanner_name.data
+        app.logger.info("Scanning document with scanner %s", scanner_name)
+
+        nfile, exists = scan_file(scan_form.scanner_name.data)
+        if exists is True:
+            flash('This file already exists', 'warning')
+            return redirect(url_for('documents'))
+            # TODO: make this work
+            #return redirect(url_for('single_document', id=doc.id))
+
+        if nfile is None:
+            flash('Could not scan the document', 'error')
+            return redirect(url_for('documents'))
+
+        # TODO: merge with the uploading, above
+
+        # Create a new document with this file instance
+        doc = m.Document(name=scan_form.name.data)
+        nfile.document = doc
+
+        # Apply tags
+        doc.apply_tags(scan_form.tags.data)
+
+        # Add a tag for the current year
+        now = datetime.datetime.utcnow().year
+        year_tag = m.Tag.get_or_create('year:' + str(now))
+        if year_tag not in doc.tags:
+            doc.tags.append(year_tag)
+
+        # Add it all and commit
+        db.session.add(nfile)
+        db.session.add(doc)
+        db.session.commit()
+
+        flash('Scanned new document', 'success')
+        return redirect(url_for('single_document', id=doc.id))
+
+    abort(501)
 
 
 @app.route("/documents/<int:id>", methods=['GET', 'POST'])
 def single_document(id):
     doc = m.Document.query.get_or_404(id)
+
+    try:
+        curr_file = int(request.args.get('curr_file') or 1)
+    except (IndexError, ValueError):
+        abort(400)
+
+    document_files = (doc.files.order_by(m.File.id).
+                        paginate(curr_file, per_page=1))
+
+    add_tags_form = f.AddTagsForm()
+    upload_form = f.UploadFileForm()
+    scan_form = f.ScanFileForm()
+    fill_scan_form(scan_form)
+
     return render_template('single_document.html',
-                           document=doc)
+                           document=doc,
+                           document_files=document_files,
+                           curr_file=curr_file,
+                           add_tags_form=add_tags_form,
+                           upload_form=upload_form,
+                           scan_form=scan_form,
+                           have_scanner=app.config['scanners'].have_scanner)
 
 
-@app.route("/documents/<int:id>/content")
-def single_document_data(id):
-    doc = m.Document.query.get_or_404(id)
-    return send_from_directory(app.config['UPLOAD_FOLDER'], doc.filename)
+@app.route("/documents/<int:id>/tags", methods=['POST'])
+def single_document_tags(id):
+    abort(501)
+
+
+@app.route("/documents/<int:id>/files", methods=['POST'])
+def single_document_files(id):
+    abort(501)
+
+
+@app.route("/documents/<int:id>/scan", methods=['POST'])
+def single_document_scan(id):
+    abort(501)
+
+
+@app.route("/files/<int:id>/content")
+def file_data(id):
+    f = m.File.query.get_or_404(id)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], f.name)
 
 
 @app.route("/tags")

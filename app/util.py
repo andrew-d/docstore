@@ -42,6 +42,12 @@ class momentjs(object):
     def fromNow(self):
         return self.render("fromNow()")
 
+
 @app.template_filter('humansize')
 def humansize(s, binary=True):
     return humanize.naturalsize(s, binary=binary)
+
+
+@app.template_filter('intcomma')
+def intcomma(s):
+    return humanize.intcomma(s)
