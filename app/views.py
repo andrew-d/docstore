@@ -54,6 +54,9 @@ def fill_scan_form(scan_form):
 @app.route("/")
 @app.route("/index")
 def index():
+    """
+    Show the index page.
+    """
     return render_template('index.html',)
 
 
@@ -74,6 +77,9 @@ def internal_server_error(error):
 
 @app.route("/stats")
 def stats():
+    """
+    Display statistics about the given document store.
+    """
     size_query = db.session.query(func.sum(m.File.size).label("total_size"))
     args = {
         'num_documents': m.Document.query.count(),
