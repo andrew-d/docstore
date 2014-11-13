@@ -150,6 +150,10 @@ def scan_file(scanner_name):
 
 @app.route("/documents")
 def documents():
+    """
+    Display a list of all documents, and forms for uploading/scanning
+    new documents.
+    """
     upload_form = f.UploadDocumentForm()
     scan_form = f.ScanDocumentForm()
     fill_scan_form(scan_form)
@@ -169,6 +173,9 @@ def documents():
 
 @app.route("/documents/upload", methods=['POST'])
 def documents_upload():
+    """
+    Endpoint for uploading new documents.
+    """
     upload_form = f.UploadDocumentForm()
 
     if upload_form.validate_on_submit():
@@ -210,6 +217,9 @@ def documents_upload():
 
 @app.route("/documents/scan", methods=['POST'])
 def documents_scan():
+    """
+    Endpoint for scanning new documents.
+    """
     scan_form = f.ScanDocumentForm()
     fill_scan_form(scan_form)
 
@@ -256,6 +266,10 @@ def documents_scan():
 
 @app.route("/documents/<int:id>")
 def single_document(id):
+    """
+    Display a single document, and allow adding/removing tags, and
+    uploading and scanning new files to be added to this document.
+    """
     doc = m.Document.query.get_or_404(id)
 
     try:
@@ -283,27 +297,42 @@ def single_document(id):
 
 @app.route("/documents/<int:id>/tags", methods=['POST'])
 def single_document_tags(id):
+    """
+    Add new tags to the given document.
+    """
     abort(501)
 
 
 @app.route("/documents/<int:id>/files", methods=['POST'])
 def single_document_files(id):
+    """
+    Add a new file to the given document.
+    """
     abort(501)
 
 
 @app.route("/documents/<int:id>/scan", methods=['POST'])
 def single_document_scan(id):
+    """
+    Scan a new file, and add it to the given document.
+    """
     abort(501)
 
 
 @app.route("/files/<int:id>/content")
 def file_data(id):
+    """
+    Display the contents of the given file.
+    """
     f = m.File.query.get_or_404(id)
     return send_from_directory(app.config['UPLOAD_FOLDER'], f.name)
 
 
 @app.route("/tags")
 def tags():
+    """
+    Show a list of all tags.
+    """
     page = get_page()
     tags = (m.Tag.query.
             order_by(m.Tag.name).
@@ -315,6 +344,9 @@ def tags():
 
 @app.route("/tags/<int:id>")
 def single_tag(id):
+    """
+    Display all documents with the given tag.
+    """
     page = get_page()
     tag = m.Tag.query.get_or_404(id)
     tag_documents = (tag.documents.
