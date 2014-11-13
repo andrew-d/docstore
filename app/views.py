@@ -254,7 +254,7 @@ def documents_scan():
     abort(501)
 
 
-@app.route("/documents/<int:id>", methods=['GET', 'POST'])
+@app.route("/documents/<int:id>")
 def single_document(id):
     doc = m.Document.query.get_or_404(id)
 
