@@ -306,6 +306,7 @@ def single_document_tags(id):
     """
     Add new tags to the given document.
     """
+    doc = m.Document.query.get_or_404(id)
     abort(501)
 
 
@@ -314,6 +315,27 @@ def single_document_files(id):
     """
     Add a new file to the given document.
     """
+    doc = m.Document.query.get_or_404(id)
+
+    upload_form = f.UploadFileForm()
+    if upload_form.validate_on_submit():
+        nfile, exists = handle_uploaded_file(upload_form.file.data)
+        if exists is True:
+            flash('This file already exists', 'warning')
+            # TODO: redirect to the existing document or not?
+            return redirect(url_for('single_document', id=id))
+
+        if nfile is None:
+            flash('Upload was not allowed', 'error')
+            return redirect(url_for('single_document', id=id))
+
+        doc.files.append(nfile)
+        db.session.add(doc)
+        db.session.commit()
+
+        flash('Uploaded new file to document', 'success')
+        return redirect(url_for('single_document', id=id))
+
     abort(501)
 
 
@@ -322,6 +344,7 @@ def single_document_scan(id):
     """
     Scan a new file, and add it to the given document.
     """
+    doc = m.Document.query.get_or_404(id)
     abort(501)
 
 
