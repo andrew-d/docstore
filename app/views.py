@@ -51,6 +51,13 @@ def fill_scan_form(scan_form):
     ]
 
 
+def add_year_tag(doc):
+    now = datetime.datetime.utcnow().year
+    year_tag = m.Tag.get_or_create('year:' + str(now))
+    if year_tag not in doc.tags:
+        doc.tags.append(year_tag)
+
+
 @app.route("/")
 @app.route("/index")
 def index():
@@ -204,10 +211,12 @@ def documents_upload():
         doc.apply_tags(upload_form.tags.data)
 
         # Add a tag for the current year
-        now = datetime.datetime.utcnow().year
-        year_tag = m.Tag.get_or_create('year:' + str(now))
-        if year_tag not in doc.tags:
-            doc.tags.append(year_tag)
+        add_year_tag(doc)
+
+        # Mark this document as having been uploaded
+        method_tag = m.Tag.get_or_create('uploaded')
+        if method_tag not in doc.tags:
+            doc.tags.append(method_tag)
 
         # Add it all and commit
         db.session.add(nfile)
@@ -254,10 +263,12 @@ def documents_scan():
         doc.apply_tags(scan_form.tags.data)
 
         # Add a tag for the current year
-        now = datetime.datetime.utcnow().year
-        year_tag = m.Tag.get_or_create('year:' + str(now))
-        if year_tag not in doc.tags:
-            doc.tags.append(year_tag)
+        add_year_tag(doc)
+
+        # Mark this document as having been scanned
+        method_tag = m.Tag.get_or_create('scanned')
+        if method_tag not in doc.tags:
+            doc.tags.append(method_tag)
 
         # Add it all and commit
         db.session.add(nfile)
