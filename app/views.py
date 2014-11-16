@@ -67,9 +67,9 @@ def index():
     return render_template('index.html',)
 
 
-@app.errorhandler(400)
-def bad_request(error):
-    return render_template('error.html', error=error), 400
+#@app.errorhandler(400)
+#def bad_request(error):
+#    return render_template('error.html', error=error), 400
 
 
 @app.errorhandler(404)
@@ -191,7 +191,7 @@ def documents_upload():
     """
     upload_form = f.UploadDocumentForm()
 
-    if upload_form.validate_on_submit():
+    if upload_form.validate():
         nfile, exists = handle_uploaded_file(upload_form.file.data)
         if exists is True:
             flash('This file already exists', 'warning')
@@ -226,8 +226,8 @@ def documents_upload():
         flash('Uploaded new document', 'success')
         return redirect(url_for('single_document', id=doc.id))
 
-    # TODO
-    abort(501)
+    # Should be unreachable
+    abort(500)
 
 
 @app.route("/documents/scan", methods=['POST'])
@@ -238,7 +238,7 @@ def documents_scan():
     scan_form = f.ScanDocumentForm()
     fill_scan_form(scan_form)
 
-    if scan_form.validate_on_submit():
+    if scan_form.validate():
         scanner_name = scan_form.scanner_name.data
         app.logger.info("Scanning document with scanner %s", scanner_name)
 
@@ -278,7 +278,8 @@ def documents_scan():
         flash('Scanned new document', 'success')
         return redirect(url_for('single_document', id=doc.id))
 
-    abort(501)
+    # Should be unreachable
+    abort(500)
 
 
 @app.route("/documents/<int:id>")
@@ -312,13 +313,48 @@ def single_document(id):
                            have_scanner=app.config['scanners'].have_scanner)
 
 
-@app.route("/documents/<int:id>/tags", methods=['POST'])
+@app.route("/documents/<int:id>/tags", methods=['POST', 'DELETE'])
 def single_document_tags(id):
     """
-    Add new tags to the given document.
+    Add or remove tags from the given document.
     """
     doc = m.Document.query.get_or_404(id)
-    abort(501)
+
+    if request.method == 'POST':
+        add_tags_form = f.AddTagsForm()
+
+        if add_tags_form.validate():
+            doc.apply_tags(add_tags_form.tags.data)
+
+            db.session.add(doc)
+            db.session.commit()
+
+            flash('Added new tags to document', 'success')
+            return redirect(url_for('single_document', id=id))
+
+    elif request.method == 'DELETE':
+        tag_name = request.form.get('tag')
+        if not tag_name:
+            abort(400)
+
+        app.logger.info("Deleting tag: %s", tag_name)
+
+        tag = m.Tag.query.filter_by(name=tag_name).first()
+        if not tag:
+            abort(500)
+
+        if tag in doc.tags:
+            doc.tags.remove(tag)
+            db.session.add(doc)
+            db.session.commit()
+
+            flash("Removed tag '%s'" % (tag_name,), 'success')
+        else:
+            flash('Tag was not found in document', 'warning')
+
+        return redirect(url_for('single_document', id=id))
+
+    abort(500)
 
 
 @app.route("/documents/<int:id>/files", methods=['POST'])
@@ -329,7 +365,7 @@ def single_document_files(id):
     doc = m.Document.query.get_or_404(id)
 
     upload_form = f.UploadFileForm()
-    if upload_form.validate_on_submit():
+    if upload_form.validate():
         nfile, exists = handle_uploaded_file(upload_form.file.data)
         if exists is True:
             flash('This file already exists', 'warning')
@@ -340,6 +376,11 @@ def single_document_files(id):
             flash('Upload was not allowed', 'error')
             return redirect(url_for('single_document', id=id))
 
+        # Mark this document as having been uploaded
+        method_tag = m.Tag.get_or_create('uploaded')
+        if method_tag not in doc.tags:
+            doc.tags.append(method_tag)
+
         doc.files.append(nfile)
         db.session.add(doc)
         db.session.commit()
@@ -347,7 +388,8 @@ def single_document_files(id):
         flash('Uploaded new file to document', 'success')
         return redirect(url_for('single_document', id=id))
 
-    abort(501)
+    # Should be unreachable
+    abort(500)
 
 
 @app.route("/documents/<int:id>/scan", methods=['POST'])
@@ -356,7 +398,37 @@ def single_document_scan(id):
     Scan a new file, and add it to the given document.
     """
     doc = m.Document.query.get_or_404(id)
-    abort(501)
+
+    scan_form = f.ScanFileForm()
+    fill_scan_form(scan_form)
+
+    if scan_form.validate_on_submit():
+        scanner_name = scan_form.scanner_name.data
+        app.logger.info("Scanning file with scanner %s", scanner_name)
+
+        nfile, exists = scan_file(scan_form.scanner_name.data)
+        if exists is True:
+            flash('This file already exists', 'warning')
+            return redirect(url_for('single_document', id=id))
+
+        if nfile is None:
+            flash('Could not scan a new file', 'error')
+            return redirect(url_for('single_document', id=id))
+
+        # Mark this document as having been scanned
+        method_tag = m.Tag.get_or_create('scanned')
+        if method_tag not in doc.tags:
+            doc.tags.append(method_tag)
+
+        doc.files.append(nfile)
+        db.session.add(doc)
+        db.session.commit()
+
+        flash('Scanned new file to document', 'success')
+        return redirect(url_for('single_document', id=id))
+
+    # Should be unreachable
+    abort(500)
 
 
 @app.route("/files/<int:id>/content")

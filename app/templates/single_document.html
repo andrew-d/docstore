@@ -57,7 +57,7 @@
       </table>
 
       <h3>Tags</h3>
-      <table class="table">
+      <table class="table table-condensed">
         <tbody>
           {% for tag in document.tags %}
             <tr>
@@ -67,9 +67,15 @@
                 </a>
               </td>
               <td>
-                <button type="button" class="btn btn-danger btn-xs">
-                  <span class="glyphicon glyphicon-trash"></span>
-                </button>
+                <form action="{{ url_for('single_document_tags', id=document.id, _methodov='DELETE') }}"
+                      method="POST"
+                      role="form">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="tag" value="{{ tag.name }}" />
+                  <button type="submit" class="btn btn-danger btn-xs">
+                    <span class="glyphicon glyphicon-trash"></span>
+                  </button>
+                </form>
               </td>
             </tr>
           {% endfor %}
