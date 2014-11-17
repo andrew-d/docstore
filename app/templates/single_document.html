@@ -223,8 +223,19 @@
       });
 
       // Finish the cropping
-      $('#finish-crop').on('click', function() {
-        // TODO: confirmation?
+      $('#finish-crop').on('click', function(e) {
+        e.preventDefault();
+
+        swal({
+          title: "Are you sure?",
+          text: "Cropping an image is permanent - you will not be able to " +
+                "recover the original, un-cropped image",
+          type: "warning",
+          showCancelButton: true,
+        }, function() {
+          // Good!
+          $('#crop-form').submit();
+        });
       });
 
       // Cancel cropping (hides the form)
@@ -235,6 +246,7 @@
         $('#crop-form').hide();
 
         e.preventDefault();
+        e.stopPropagation();
         return false;
       });
     });
