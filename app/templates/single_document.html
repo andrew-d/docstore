@@ -38,9 +38,11 @@
         {{ content_pager(document, document_files, curr_file) }}
       {% endif %}
 
-      <img src="{{ url_for('file_data', id=document_files.items[0].id) }}"
-           id="content"
-           style="max-width: 100%"/>
+      <div class="crop-image-wrapper">
+        <img src="{{ url_for('file_data', id=document_files.items[0].id) }}"
+             id="content"
+             style="max-width: 100%; margin: 0 auto"/>
+      </div>
 
       {% if document_files.total > 1 %}
         {{ content_pager(document, document_files, curr_file) }}
@@ -208,6 +210,7 @@
       var jcrop_api = $.Jcrop("#content", {
         onChange: handleChange,
         onSelect: handleChange,
+        addClass: 'jcrop-centered',
       });
 
       // Cropping starts off disabled
@@ -249,4 +252,12 @@
 
 {% block styles %}
   <link href="{{ url_for('static', filename='css/jquery.Jcrop.min.css') }}" rel="stylesheet" media="screen">
+  <style>
+    .jcrop-centered {
+      display: inline-block;
+    }
+    .crop-image-wrapper {
+      text-align: center;
+    }
+  </style>
 {% endblock %}
