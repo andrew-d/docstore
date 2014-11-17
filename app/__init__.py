@@ -1,8 +1,10 @@
+import os
+
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.wtf import CsrfProtect
 
-from . import scanner, middleware
+from . import middleware, scanner
 
 
 # Set up and configure app
@@ -18,12 +20,21 @@ app.config['INDEX_PATH'] = os.path.join(app.config['DATA_DIRECTORY'], 'search')
 
 
 # Set up and configure everything else
+## Database
 db = SQLAlchemy(app)
+
+## CSRF protection
 csrf = CsrfProtect(app)
-app.config['scanners'] = scanner.Config
 app.config['WTF_CSRF_METHODS'] = ['POST', 'PUT', 'PATCH', 'DELETE']
+
+## Scanner
+app.config['scanners'] = scanner.Config
+
+## Searching
+from .search import open_index
+app.config['index'] = open_index()
 
 
 # This needs to go at the end.
 app.logger.info("Configuration finished")
-from . import models, views, util
+from . import models, search, util, views
