@@ -7,10 +7,18 @@
       <title>docstore</title>
     {% endif %}
 
-    <link href="{{ url_for('static', filename='css/vendor.min.css' ) }}" rel="stylesheet" media="screen">
+    {% if config['DEBUG'] %}
+      <link href="{{ url_for('static', filename='css/vendor.css' ) }}" rel="stylesheet" media="screen">
+    {% else %}
+      <link href="{{ url_for('static', filename='css/vendor.min.css' ) }}" rel="stylesheet" media="screen">
+    {% endif %}
     <link href="{{ url_for('static', filename='css/app.css' ) }}" rel="stylesheet" media="screen">
 
-    <script src="{{ url_for('static', filename='js/vendor.min.js' ) }}"></script>
+    {% if config['DEBUG'] %}
+      <script src="{{ url_for('static', filename='js/vendor.js' ) }}"></script>
+    {% else %}
+      <script src="{{ url_for('static', filename='js/vendor.min.js' ) }}"></script>
+    {% endif %}
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
