@@ -2,6 +2,8 @@
 {% set active_page = "documents" %}
 {% from 'macros/fields.html' import render_field %}
 
+{% block title %}Document {{ document.name }}{% endblock %}
+
 {% block content %}
   <div class="row">
     <div class="col-xs-12">
@@ -17,12 +19,12 @@
           <ul class="pager">
             <li class="previous{% if not files.has_prev %} disabled{% endif %}">
               <a href="{{ url_for('single_document', id=doc.id, curr_file=files.prev_num) }}">
-                <span aria-hidden="true">&larr;</span> Older
+                <span aria-hidden="true">&larr;</span> Previous
               </a>
             </li>
             <li class="next{% if not files.has_next %} disabled{% endif %}">
               <a href="{{ url_for('single_document', id=doc.id, curr_file=files.next_num) }}">
-                Newer <span aria-hidden="true">&rarr;</span>
+                Next <span aria-hidden="true">&rarr;</span>
               </a>
             </li>
           </ul>
@@ -34,6 +36,7 @@
       {% endif %}
 
       <img src="{{ url_for('file_data', id=document_files.items[0].id) }}"
+           id="content"
            style="max-width: 100%"/>
 
       {% if document_files.total > 1 %}
@@ -94,18 +97,21 @@
       <div role="tabpanel">
         <ul id="actionsTabs" class="nav nav-tabs" role="tablist" style="margin-bottom: 15px">
           <li role="presentation" class="active">
-            <a href="#tags" role="tab" data-toggle="tab">Add Tags</a>
+            <a href="#tags-pane" role="tab" data-toggle="tab">Tag</a>
           </li>
           <li role="presentation">
-            <a href="#upload" role="tab" data-toggle="tab">Upload File</a>
+            <a href="#upload-pane" role="tab" data-toggle="tab">Upload</a>
           </li>
           <li role="presentation">
-            <a href="#scan" role="tab" data-toggle="tab">Scan File</a>
+            <a href="#scan-pane" role="tab" data-toggle="tab">Scan</a>
+          </li>
+          <li role="presentation">
+            <a href="#crop-pane" role="tab" data-toggle="tab">Crop</a>
           </li>
         </ul>
 
         <div class="tab-content">
-          <div role="tabpanel" class="tab-pane active" id="tags">
+          <div role="tabpanel" class="tab-pane active" id="tags-pane">
             <form action="{{ url_for('single_document_tags', id=document.id) }}"
                   method="POST"
                   enctype="multipart/form-data"
@@ -117,7 +123,7 @@
             </form>
           </div>
 
-          <div role="tabpanel" class="tab-pane" id="upload">
+          <div role="tabpanel" class="tab-pane" id="upload-pane">
             <form action="{{ url_for('single_document_files', id=document.id) }}"
                   method="POST"
                   enctype="multipart/form-data"
@@ -129,7 +135,7 @@
             </form>
           </div>
 
-          <div role="tabpanel" class="tab-pane" id="scan">
+          <div role="tabpanel" class="tab-pane" id="scan-pane">
             {% if have_scanner %}
               <form action="{{ url_for('single_document_scan', id=document.id) }}"
                     method="POST"
@@ -144,6 +150,33 @@
               <p><strong>No scanners available</strong></p>
             {% endif %}
           </div>
+
+          <div role="tabpanel" class="tab-pane" id="crop-pane">
+            <button class="btn btn-primary" id="start-crop">
+              Start Cropping
+            </button>
+
+            <form action="{{ url_for('file_crop', id=document_files.items[0].id) }}"
+                  method="POST"
+                  class="form"
+                  id="crop-form"
+                  role="form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="x" value="" />
+              <input type="hidden" name="y" value="" />
+              <input type="hidden" name="x2" value="" />
+              <input type="hidden" name="y2" value="" />
+
+              <button type="submit" class="btn btn-warning" id="finish-crop">
+                Finish Cropping
+              </button>
+              <button type="submit" class="btn btn-error" id="cancel-crop">
+                Cancel
+              </button>
+
+              <p id="crop-info"></p>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -152,6 +185,56 @@
 
 {% block scripts %}
   <script src="{{ url_for('static', filename='js/jquery.Jcrop.min.js') }}"></script>
+
+  <script>
+    $(window).load(function() {
+      var handleChange = function(c) {
+        // Update form fields.
+        $('#crop-form input[name="x"]').val(c.x);
+        $('#crop-form input[name="y"]').val(c.y);
+        $('#crop-form input[name="x2"]').val(c.x2);
+        $('#crop-form input[name="y2"]').val(c.y2);
+
+        // Update notification text
+        var s =
+          'Crop selection (' + c.x + ', ' + c.y + ') ' +
+          'to (' + c.x2 + ', ' + c.y2 + ')';
+        $("#crop-info").text(s);
+      };
+
+      var jcrop_api = $.Jcrop("#content", {
+        onChange: handleChange,
+        onSelect: handleChange,
+      });
+
+      // Cropping starts off disabled
+      jcrop_api.disable();
+      $('#crop-form').hide();
+
+      // When the appropriate button is clicked, we enable it.
+      $('#start-crop').on('click', function() {
+        jcrop_api.enable();
+        $('#start-crop').hide();
+        $('#crop-form').show();
+      });
+
+      // Finish the cropping
+      $('#finish-crop').on('click', function() {
+        // TODO: confirmation?
+      });
+
+      // Cancel cropping (hides the form)
+      $('#cancel-crop').on('click', function(e) {
+        jcrop_api.release();
+        jcrop_api.disable();
+        $('#start-crop').show();
+        $('#crop-form').hide();
+
+        e.preventDefault();
+        return false;
+      });
+    });
+  </script>
 {% endblock %}
 
 {% block styles %}

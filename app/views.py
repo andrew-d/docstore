@@ -1,6 +1,7 @@
 import os
 import hashlib
 import datetime
+from io import BytesIO
 #import mimetypes
 
 from flask import (
@@ -15,6 +16,7 @@ from flask import (
 )
 from werkzeug import secure_filename
 from sqlalchemy.sql import func
+from PIL import Image
 
 from . import app, db
 from . import models as m
@@ -451,6 +453,87 @@ def file_data(id):
         return response
 
     return send_from_directory(app.config['UPLOAD_FOLDER'], f.name)
+
+
+@app.route("/files/<int:id>/crop", methods=['POST'])
+def file_crop(id):
+    f = m.File.query.get_or_404(id)
+
+    try:
+        x = int(request.form['x'])
+        y = int(request.form['y'])
+        x2 = int(request.form['x2'])
+        y2 = int(request.form['y2'])
+    except ValueError:
+        # TODO: print errors
+        abort(400)
+
+    # Load the existing image
+    old_path = os.path.join(app.config['UPLOAD_FOLDER'], f.name)
+    im = Image.open(old_path)
+
+    # Validate that the crop dimensions will "fit"
+    width, height = im.size
+
+    app.logger.debug("Existing image size is: %r", im.size)
+    app.logger.debug("Cropping image to box: %r", (x, y, x2, y2))
+
+    # Validate the crop is valid
+    errors = []
+    if not 0 <= x <= width:
+        errors.append("x not in range: 0 <= %d <= %d" % (x, width))
+
+    if not 0 <= y <= height:
+        errors.append("y not in range: 0 <= %d <= %d" % (y, height))
+
+    if not 0 <= x2 <= width:
+        errors.append("x2 not in range: 0 <= %d <= %d" % (x2, width))
+    if not x < x2:
+        errors.append("x2 not in range: %d < %d" % (x, x2))
+
+    if not 0 <= y2 <= height:
+        errors.append("y2 not in range: 0 <= %d <= %d" % (y2, height))
+    if not y < y2:
+        errors.append("y2 not in range: %d < %d" % (y, y2))
+
+    # Bad crop
+    if len(errors) > 0:
+        for err in errors:
+            flash('Crop error: %s' % (err,), 'danger')
+
+        # TODO: redirect back
+        return redirect(url_for('documents'))
+
+    # Perform the crop
+    app.logger.debug("Will perform crop")
+    newim = im.crop((x, y, x2, y2))
+
+    # Serialize the image as PNG, and hash it.
+    with BytesIO() as memf:
+        newim.save(memf, 'PNG')
+        data = memf.getvalue()
+
+    fhash = hashlib.sha256(data).hexdigest()
+    fname = fhash + '.png'
+    app.logger.debug("New filename is: %s", fname)
+
+    # Save the image in the data directory
+    with open(os.path.join(app.config['UPLOAD_FOLDER'], fname), 'wb') as fout:
+        fout.write(data)
+
+    # Update the database.
+    f.name = fname
+    f.size = len(data)
+    db.session.add(f)
+    db.session.commit()
+
+    # Finally, remove the old file.
+    os.unlink(old_path)
+
+    # All good!
+    flash('Successfully cropped file', 'success')
+    # TODO: where to redirect to?
+    return redirect(url_for('documents'))
 
 
 @app.route("/tags")

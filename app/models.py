@@ -13,6 +13,8 @@ tags_rel = db.Table("tags_rel",
 class File(db.Model):
     __tablename__ = "files"
 
+    # Note: we don't use the name as a primary key because we want to be able
+    # to edit the file (e.g. cropping images) without changing the model's ID.
     id = db.Column(db.Integer, primary_key=True)
     size = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String, nullable=False, index=True, unique=True)
