@@ -295,6 +295,7 @@ def single_document(id):
     except (IndexError, ValueError):
         abort(400)
 
+    document_size = db.session.query(func.sum(m.File.size)).first()[0]
     document_files = (doc.files.order_by(m.File.id).
                         paginate(curr_file, per_page=1))
 
@@ -306,6 +307,7 @@ def single_document(id):
     return render_template('single_document.html',
                            document=doc,
                            document_files=document_files,
+                           document_size=document_size,
                            curr_file=curr_file,
                            add_tags_form=add_tags_form,
                            upload_form=upload_form,

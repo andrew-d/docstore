@@ -53,6 +53,13 @@
             <td>Created</td>
             <td>{{ momentjs(document.created).calendar() }}</td>
           </tr>
+          <tr>
+            <td>Total Size</td>
+            <td>
+              <span title="{{ document_size | intcomma }} bytes">{{ document_size | humansize }}</span>
+              in {{ document_files.total }} file(s)
+            </td>
+          </tr>
         </tbody>
       </table>
 
