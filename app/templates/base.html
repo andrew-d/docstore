@@ -9,6 +9,7 @@
 
     <link href="{{ url_for('static', filename='css/bootstrap.min.css' ) }}" rel="stylesheet" media="screen">
     <link href="{{ url_for('static', filename='css/app.css' ) }}" rel="stylesheet" media="screen">
+    {% block styles %}{% endblock %}
 
     {# Global scripts #}
     <script src="{{ url_for('static', filename='js/jquery.min.js' ) }}"></script>

@@ -1,0 +1,1 @@
+../../../bower_components/jcrop/js/jquery.color.js
