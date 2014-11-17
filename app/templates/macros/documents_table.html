@@ -3,6 +3,7 @@
     <thead>
       <th>Name</th>
       <th>Created</th>
+      <th># of Files</th>
       <th>Tags</th>
     </thead>
     <tbody>
@@ -11,6 +12,7 @@
             data-url="{{ url_for('single_document', id=document.id) }}">
           <td>{{ document.name }}</td>
           <td>{{ momentjs(document.created).calendar() }}</td>
+          <td>{{ document.files.count() }}</td>
           <td>{{ document.tags | join(', ', attribute='name') }}</td>
         </tr>
       {% endfor %}
