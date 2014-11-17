@@ -465,7 +465,7 @@ def file_crop(id):
         x2 = int(request.form['x2'])
         y2 = int(request.form['y2'])
     except ValueError:
-        # TODO: print errors
+        app.logger.warn("Invalid value for crop parameters")
         abort(400)
 
     # Load the existing image
@@ -498,6 +498,8 @@ def file_crop(id):
 
     # Bad crop
     if len(errors) > 0:
+        app.logger.warn("Errors while cropping: %r", errors)
+
         for err in errors:
             flash('Crop error: %s' % (err,), 'danger')
 

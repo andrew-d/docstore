@@ -192,27 +192,49 @@
   <script>
     $(window).load(function() {
       var handleChange = function(c) {
+        // We round coordinates to the nearest pixel
+        var x  = Math.round(c.x),
+            y  = Math.round(c.y),
+            x2 = Math.round(c.x2),
+            y2 = Math.round(c.y2);
+
         // Update form fields.
-        $('#crop-form input[name="x"]').val(c.x);
-        $('#crop-form input[name="y"]').val(c.y);
-        $('#crop-form input[name="x2"]').val(c.x2);
-        $('#crop-form input[name="y2"]').val(c.y2);
+        $('#crop-form input[name="x"]').val(x);
+        $('#crop-form input[name="y"]').val(y);
+        $('#crop-form input[name="x2"]').val(x2);
+        $('#crop-form input[name="y2"]').val(y2);
 
         // Update notification text
         var s =
-          'Crop selection (' + c.x + ', ' + c.y + ') ' +
-          'to (' + c.x2 + ', ' + c.y2 + ')';
+          'Crop selection ' +
+          '(' + x + ', ' + y + ')' +
+          ' to ' +
+          '(' + x2 + ', ' + y2 + ')';
         $("#crop-info").text(s);
       };
 
-      var jcrop_api = $.Jcrop("#content", {
-        onChange: handleChange,
-        onSelect: handleChange,
-        addClass: 'jcrop-centered',
-      });
+      var jcrop_api;
 
-      // Cropping starts off disabled
-      jcrop_api.disable();
+      // Get the true size of the image.
+      var img = new Image();
+      img.onload = function() {
+        var w = this.width,
+            h = this.height;
+
+        // Create the jcrop handler
+        jcrop_api = $.Jcrop("#content", {
+          onChange: handleChange,
+          onSelect: handleChange,
+          addClass: 'jcrop-centered',
+          trueSize: [w, h],
+        });
+
+        // Cropping starts off disabled
+        jcrop_api.disable();
+      };
+      img.src = $('#content').attr('src');
+
+      // The crop form should start off hidden
       $('#crop-form').hide();
 
       // When the appropriate button is clicked, we enable it.
