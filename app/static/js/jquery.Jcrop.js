@@ -1,1 +1,0 @@
-../../../bower_components/jcrop/js/jquery.Jcrop.js

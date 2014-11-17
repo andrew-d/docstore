@@ -5,3 +5,10 @@
 tr.clickable-row {
     cursor: pointer;
 }
+
+.jcrop-centered {
+    display: inline-block;
+}
+.crop-image-wrapper {
+    text-align: center;
+}

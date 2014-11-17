@@ -7,14 +7,10 @@
       <title>docstore</title>
     {% endif %}
 
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css' ) }}" rel="stylesheet" media="screen">
+    <link href="{{ url_for('static', filename='css/vendor.min.css' ) }}" rel="stylesheet" media="screen">
     <link href="{{ url_for('static', filename='css/app.css' ) }}" rel="stylesheet" media="screen">
-    {% block styles %}{% endblock %}
 
-    {# Global scripts #}
-    <script src="{{ url_for('static', filename='js/jquery.min.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='js/moment.min.js' ) }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor.min.js' ) }}"></script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>

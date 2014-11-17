@@ -16,6 +16,16 @@
   "dependencies": {
     "bootstrap": "~3.3.0",
     "momentjs": "~2.8.3",
-    "jcrop": "~0.9.12"
+    "jcrop": "~0.9.12",
+    "bootstrap-sweetalert": "~0.4.3"
+  },
+  "overrides": {
+    "jcrop": {
+      "main": [
+        "js/jquery.color.js",
+        "js/jquery.Jcrop.js",
+        "css/jquery.Jcrop.css"
+      ]
+    }
   }
 }
