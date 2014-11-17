@@ -22,6 +22,9 @@
                 <span aria-hidden="true">&larr;</span> Previous
               </a>
             </li>
+            <li class="disabled">
+              <a href="#">File {{ curr_page }} of {{ files.total }}</a>
+            </li>
             <li class="next{% if not files.has_next %} disabled{% endif %}">
               <a href="{{ url_for('single_document', id=doc.id, curr_file=files.next_num) }}">
                 Next <span aria-hidden="true">&rarr;</span>
@@ -233,6 +236,13 @@
         e.preventDefault();
         return false;
       });
+    });
+
+    // Disable clicks on things with the 'disabled' class
+    $('.disabled').on('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
     });
   </script>
 {% endblock %}
