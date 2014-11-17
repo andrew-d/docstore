@@ -5,6 +5,7 @@ import datetime
 
 from flask import (
     abort,
+    after_this_request,
     flash,
     redirect,
     render_template,
@@ -439,6 +440,16 @@ def file_data(id):
     Display the contents of the given file.
     """
     f = m.File.query.get_or_404(id)
+
+    # TODO: for now, we don't cache the content at all.  There might be a
+    # better way to do this with etags or something later
+    @after_this_request
+    def no_cache_headers(response):
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+
     return send_from_directory(app.config['UPLOAD_FOLDER'], f.name)
 
 
