@@ -11,6 +11,12 @@ app.wsgi_app = middleware.MethodRewriteMiddleware(app.wsgi_app,
                                                   query_param="_methodov")
 app.config.from_object('config')
 
+# Generated configuration
+app.config['UPLOAD_FOLDER'] = os.path.join(app.config['DATA_DIRECTORY'],
+                                           'uploads')
+app.config['INDEX_PATH'] = os.path.join(app.config['DATA_DIRECTORY'], 'search')
+
+
 # Set up and configure everything else
 db = SQLAlchemy(app)
 csrf = CsrfProtect(app)

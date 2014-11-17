@@ -16,6 +16,3 @@ if os.environ.get('DATABASE_URL') is None:
                                '?check_same_thread=False')
 else:
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
-
-# Uploaded files
-UPLOAD_FOLDER = os.path.join(DATA_DIRECTORY, 'uploads')
