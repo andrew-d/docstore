@@ -1,9 +1,7 @@
 import datetime
 
-from flask.ext.sqlalchemy import SQLAlchemy
 
-
-db = SQLAlchemy()
+from . import db
 
 
 tags_rel = db.Table("tags_rel",
@@ -23,18 +21,6 @@ class File(db.Model):
     created = db.Column(db.DateTime, nullable=False,
                         default=datetime.datetime.utcnow)
     document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
-
-    def __repr__(self):
-        return '<File %r>' % (self.name,)
-
-    def as_json(self):
-        return {
-            'id':       self.id,
-            'size':     self.size,
-            'name':     self.name,
-            'created':  self.created.isoformat(),
-            'document': self.document_id,
-        }
 
 
 class Document(db.Model):
@@ -57,15 +43,19 @@ class Document(db.Model):
     def __repr__(self):
         return "<Document %r>" % (self.name,)
 
-    def as_json(self):
-        return {
-            'id':       self.id,
-            'name':     self.name,
-            'created':  self.created.isoformat(),
-            'files':    [f.id for f in self.files],
-            'meta':     self.meta,
-            'tags':     [t.id for t in self.tags],
-        }
+    def apply_tags(self, tags):
+        if not tags:
+            return self
+
+        # TODO: proper shell splitting with quotes
+        new_tags = tags.split(' ')
+        for tagname in new_tags:
+            t = Tag.get_or_create(tagname)
+
+            if t not in self.tags:
+                self.tags.append(t)
+
+        return self
 
 
 class Tag(db.Model):
@@ -73,6 +63,9 @@ class Tag(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, index=True, unique=True)
+
+    def __repr__(self):
+        return "<Tag %r>" % (self.name,)
 
     @classmethod
     def get_or_create(klass, name):
@@ -83,13 +76,3 @@ class Tag(db.Model):
         instance = klass(name=name)
         db.session.add(instance)
         return instance
-
-    def __repr__(self):
-        return "<Tag %r>" % (self.name,)
-
-    def as_json(self):
-        return {
-            'id':   self.id,
-            'name': self.name,
-            # TODO: documents?
-        }

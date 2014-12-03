@@ -1,0 +1,20 @@
+<table class="table table-striped table-bordered table-condensed">
+  <thead>
+    <th>Name</th>
+    <th>Created</th>
+    <th># of Files</th>
+    <th>Tags</th>
+  </thead>
+  <tbody>
+    {{#each document in documents}}
+      {{#link-to 'document' document tagName='tr'}}
+      <tr>
+        <td>{{document.name}}</td>
+        <td>{{moment-calendar document.created}}</td>
+        <td>{{document.files.length}}</td>
+        <td>{{document.tags}}</td>
+      </tr>
+      {{/link-to}}
+    {{/each}}
+  </tbody>
+</table>
