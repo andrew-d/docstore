@@ -11,6 +11,10 @@
     There are {{tags.length}} tag(s) in the store.
 
     <h3>Scanners</h3>
-    <p><strong>No scanners found</strong></p>
+    {{#if capabilities.scanning}}
+      <p><strong>No scanners found.</strong></p>
+    {{else}}
+      <p><strong>Not enabled.</strong></p>
+    {{/if}}
   </div>
 </div>

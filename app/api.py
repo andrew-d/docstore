@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 from flask.ext import restful
 from flask.ext.restful import reqparse
 
@@ -160,8 +160,17 @@ class TagAPI(restful.Resource):
         return {}
 
 
+class CapabilitiesAPI(restful.Resource):
+    def get(self):
+        return {
+            'scanning': current_app.config['ENABLE_SCANNING'],
+            'ocr':      current_app.config['ENABLE_OCR'],
+        }
+
+
 
 api.add_resource(DocumentListAPI, "/documents")
 api.add_resource(DocumentAPI, "/documents/<int:id>")
 api.add_resource(TagListAPI, "/tags")
 api.add_resource(TagAPI, "/tags/<int:id>")
+api.add_resource(CapabilitiesAPI, "/capabilities")

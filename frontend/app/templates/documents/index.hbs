@@ -20,3 +20,90 @@
     <h4>New Document</h4>
   </div>
 </div>
+
+<div class="row">
+  <div class="col-md-6">
+
+      <div role="tabpanel">
+        <ul id="actionsTabs" class="nav nav-tabs" role="tablist" style="margin-bottom: 15px">
+          <li role="presentation" {{bind-attr class="isUploadActive:active"}}>
+            <a role="tab" {{action 'switchTab' 'upload'}}>Upload File</a>
+          </li>
+          {{#if capabilities.scanning}}
+          <li role="presentation" {{bind-attr class="isScanActive:active"}}>
+            <a role="tab" {{action 'switchTab' 'scan'}}>Scan File</a>
+          </li>
+          {{/if}}
+        </ul>
+
+        <div class="tab-content">
+          <div role="tabpanel" {{bind-attr class=":tab-pane isUploadActive:active"}}>
+            <div class="form-group">
+              <label for="uploadName" class="control-label">Document Name</label>
+              {{input type="text"
+                      id="uploadName"
+                      placeholder="Receipt for widgets"
+                      class="form-control"
+                      value=newName}}
+            </div>
+
+            <div class="form-group">
+              <label for="uploadTags" class="control-label">Tags to Apply</label>
+              {{input type="text"
+                      id="uploadTags"
+                      placeholder="Enter space-seperated tags"
+                      class="form-control"
+                      value=newTags}}
+            </div>
+
+            <div class="form-group">
+              {{#file-upload addFiles='addFiles'}}
+                Select File
+              {{/file-upload}}
+            </div>
+
+            <button class="btn btn-primary" {{action 'submit'}}>
+              Upload
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-content">
+          <div role="tabpanel" {{bind-attr class=":tab-pane isScanActive:active"}}>
+            <div class="form-group">
+              <label for="scanName" class="control-label">Document Name</label>
+              {{input type="text"
+                      id="scanName"
+                      placeholder="Receipt for widgets"
+                      class="form-control"
+                      value=newName}}
+            </div>
+
+            <div class="form-group">
+              <label for="scanTags" class="control-label">Tags to Apply</label>
+              {{input type="text"
+                      id="scanTags"
+                      placeholder="Enter space-seperated tags"
+                      class="form-control"
+                      value=newTags}}
+            </div>
+
+            <div class="form-group">
+              <label for="scanScanner" class="control-label">Scanner Name</label>
+              {{view "select" content=availableScanners
+                              classNames="form-control"
+                              id="scanScanner"
+                              optionValuePath="content.id"
+                              optionLabelPath="content.label"
+                              selection=scannerName}}
+            </div>
+
+            <button class="btn btn-primary" {{action 'scan'}}>
+              Scan
+            </button>
+          </div>
+        </div>
+      </div>
+
+  </div>
+</div>

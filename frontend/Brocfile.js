@@ -36,4 +36,17 @@ app.import({
     production:  'bower_components/humanize-plus/public/dist/humanize.min.js',
 });
 
+// mOxie (https://github.com/moxiecode/moxie)
+app.import({
+    development: 'bower_components/moxie/bin/js/moxie.js',
+    production:  'bower_components/moxie/bin/js/moxie.min.js',
+});
+app.import('bower_components/moxie/bin/flash/Moxie.min.swf', {
+    destDir: 'assets',
+});
+app.import('bower_components/moxie/bin/silverlight/Moxie.min.xap', {
+    destDir: 'assets',
+});
+
+
 module.exports = app.toTree();

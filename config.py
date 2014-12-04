@@ -8,7 +8,13 @@ class Config(object):
     TESTING = False
     SECRET_KEY = ('cb04a4d1284a33e7d2a6cebc864c70acf5112992' +
                   'f50c3a9caf561cd7d013576f1b0e36b129c29b6f')
+
+    # Data is stored in subfolders of this directory
     DATA_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
+
+    # Control whether certain features are enabled
+    ENABLE_SCANNING = True
+    ENABLE_OCR = True
 
 
 class Production(Config):
