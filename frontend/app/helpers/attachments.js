@@ -33,7 +33,7 @@ export function loadAttachment(file) {
  * @param String data - The binary file content
  * @return RSVP.Promise
  */
-export function uploadAttachment(file, data, url) {
+export function uploadAttachment(url, file, data) {
   return new Ember.RSVP.Promise(function(resolve, reject) {
     var req = Ember.$.post(url, {
       filename: file.name,

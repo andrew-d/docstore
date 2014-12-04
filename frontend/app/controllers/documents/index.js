@@ -78,5 +78,13 @@ export default Ember.ArrayController.extend({
     scan: function() {
       console.log("Would scan new files");
     },
+
+    reset: function() {
+      this.set('newName', null);
+      this.set('newTags', null);
+      this.set('newFile', null);
+      this.set('scannerName', null);
+      this.set('files', []);
+    },
   },
 });
