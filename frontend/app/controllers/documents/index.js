@@ -42,6 +42,7 @@ export default Ember.ArrayController.extend({
   ],
 
   actions: {
+    // Switch to the given tab
     switchTab: function(name) {
       if( ['upload', 'scan'].indexOf(name) === -1 ) {
         throw new Error("Invalid tab: " + name);
@@ -50,13 +51,13 @@ export default Ember.ArrayController.extend({
       this.set('tabName', name);
     },
 
-    // Sent from 'file-upload' component
+    // Add new file to our list of files.  Sent from 'file-upload' component.
     addFiles: function(files) {
       var existing = this.get('files');
 
       // Add new files to our array.
       files.forEach(function(file) {
-        if (!existing.findBy('name', file.name)) {
+        if( !existing.findBy('name', file.name) ) {
           existing.pushObject(file);
         }
       });

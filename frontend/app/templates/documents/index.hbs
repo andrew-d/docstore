@@ -56,6 +56,29 @@
                       value=newTags}}
             </div>
 
+            {{#if files}}
+              <table class="table table-condensed">
+                <thead>
+                  <th>File Name</th>
+                  <th>Size</th>
+                  <th></th>
+                </thead>
+                <tbody>
+                  {{#each file in files}}
+                    <tr>
+                      <td>{{file.name}}</td>
+                      <td>{{human-file-size file.size}}</td>
+                      <td>
+                        <button class="btn btn-danger btn-xs" {{action 'removeFile' file}}>
+                          <span class="glyphicon glyphicon-trash"></span>
+                        </button>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            {{/if}}
+
             <div class="form-group">
               {{#file-upload addFiles='addFiles'}}
                 Select File
