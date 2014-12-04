@@ -12,7 +12,7 @@
         <td>{{document.name}}</td>
         <td>{{moment-calendar document.created}}</td>
         <td>{{document.files.length}}</td>
-        <td>{{document.tags}}</td>
+        <td>{{join-tags document.tags ', '}}</td>
       </tr>
       {{/link-to}}
     {{/each}}
