@@ -34,13 +34,6 @@ export default Ember.ArrayController.extend({
   // Files we're uploading
   files: [],
 
-  // Available scanners
-  // TODO: where should we set this?
-  availableScanners: [
-    {id: 1, label: "foo"},
-    {id: 2, label: "bar"},
-  ],
-
   actions: {
     // Switch to the given tab
     switchTab: function(name) {

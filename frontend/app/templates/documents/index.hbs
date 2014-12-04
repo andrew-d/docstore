@@ -113,11 +113,11 @@
 
             <div class="form-group">
               <label for="scanScanner" class="control-label">Scanner Name</label>
-              {{view "select" content=availableScanners
+              {{view "select" content=capabilities.scanners
                               classNames="form-control"
                               id="scanScanner"
                               optionValuePath="content.id"
-                              optionLabelPath="content.label"
+                              optionLabelPath="content.name"
                               selection=scannerName}}
             </div>
 

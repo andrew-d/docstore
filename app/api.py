@@ -165,6 +165,11 @@ class CapabilitiesAPI(restful.Resource):
         return {
             'scanning': current_app.config['ENABLE_SCANNING'],
             'ocr':      current_app.config['ENABLE_OCR'],
+            # TODO: need to get this from system, not hard-coded
+            'scanners': [
+                {'id': 1, 'name': 'foo'},
+                {'id': 2, 'name': 'bar'},
+            ],
         }
 
 
