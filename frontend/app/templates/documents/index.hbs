@@ -5,128 +5,119 @@
 </div>
 
 <div class="row">
-  <div class="col-md-12">
-    There are {{model.length}} document(s) stored.
-
+  <div class="col-md-9">
     {{documents-table documents=content}}
     {{#if haveMultiplePages}}
       {{page-numbers content=content}}
     {{/if}}
   </div>
-</div>
 
-<div class="row">
-  <div class="col-md-12">
+  <div class="col-md-3">
     <h4>New Document</h4>
-  </div>
-</div>
 
-<div class="row">
-  <div class="col-md-6">
+  <div role="tabpanel">
+    <ul id="actionsTabs" class="nav nav-tabs" role="tablist" style="margin-bottom: 15px">
+      <li role="presentation" {{bind-attr class="isUploadActive:active"}}>
+        <a role="tab" {{action 'switchTab' 'upload'}}>Upload</a>
+      </li>
+      {{#if capabilities.scanning}}
+      <li role="presentation" {{bind-attr class="isScanActive:active"}}>
+        <a role="tab" {{action 'switchTab' 'scan'}}>Scan</a>
+      </li>
+      {{/if}}
+    </ul>
 
-      <div role="tabpanel">
-        <ul id="actionsTabs" class="nav nav-tabs" role="tablist" style="margin-bottom: 15px">
-          <li role="presentation" {{bind-attr class="isUploadActive:active"}}>
-            <a role="tab" {{action 'switchTab' 'upload'}}>Upload File</a>
-          </li>
-          {{#if capabilities.scanning}}
-          <li role="presentation" {{bind-attr class="isScanActive:active"}}>
-            <a role="tab" {{action 'switchTab' 'scan'}}>Scan File</a>
-          </li>
-          {{/if}}
-        </ul>
-
-        <div class="tab-content">
-          <div role="tabpanel" {{bind-attr class=":tab-pane isUploadActive:active"}}>
-            <div class="form-group">
-              <label for="uploadName" class="control-label">Document Name</label>
-              {{input type="text"
-                      id="uploadName"
-                      placeholder="Receipt for widgets"
-                      class="form-control"
-                      value=newName}}
-            </div>
-
-            <div class="form-group">
-              <label for="uploadTags" class="control-label">Tags to Apply</label>
-              {{input type="text"
-                      id="uploadTags"
-                      placeholder="Enter space-seperated tags"
-                      class="form-control"
-                      value=newTags}}
-            </div>
-
-            <div class="form-group">
-              {{#file-upload addFiles='addFiles' multiple=true}}
-                Add Files
-              {{/file-upload}}
-
-              <button class="btn btn-primary" {{action 'submit'}}>
-                Upload
-              </button>
-            </div>
-
-            {{#if files}}
-              <table class="table table-condensed">
-                <thead>
-                  <th>File Name</th>
-                  <th>Size</th>
-                  <th></th>
-                </thead>
-                <tbody>
-                  {{#each file in files}}
-                    <tr>
-                      <td>{{file.name}}</td>
-                      <td>{{human-file-size file.size}}</td>
-                      <td>
-                        <button class="btn btn-danger btn-xs" {{action 'removeFile' file}}>
-                          <span class="glyphicon glyphicon-trash"></span>
-                        </button>
-                      </td>
-                    </tr>
-                  {{/each}}
-                </tbody>
-              </table>
-            {{/if}}
-          </div>
+    <div class="tab-content">
+      <div role="tabpanel" {{bind-attr class=":tab-pane isUploadActive:active"}}>
+        <div class="form-group">
+          <label for="uploadName" class="control-label">Document Name</label>
+          {{input type="text"
+                  id="uploadName"
+                  placeholder="Receipt for widgets"
+                  class="form-control"
+                  value=newName}}
         </div>
 
-        <div class="tab-content">
-          <div role="tabpanel" {{bind-attr class=":tab-pane isScanActive:active"}}>
-            <div class="form-group">
-              <label for="scanName" class="control-label">Document Name</label>
-              {{input type="text"
-                      id="scanName"
-                      placeholder="Receipt for widgets"
-                      class="form-control"
-                      value=newName}}
-            </div>
-
-            <div class="form-group">
-              <label for="scanTags" class="control-label">Tags to Apply</label>
-              {{input type="text"
-                      id="scanTags"
-                      placeholder="Enter space-seperated tags"
-                      class="form-control"
-                      value=newTags}}
-            </div>
-
-            <div class="form-group">
-              <label for="scanScanner" class="control-label">Scanner Name</label>
-              {{view "select" content=capabilities.scanners
-                              classNames="form-control"
-                              id="scanScanner"
-                              optionValuePath="content.id"
-                              optionLabelPath="content.name"
-                              selection=scannerName}}
-            </div>
-
-            <button class="btn btn-primary" {{action 'scan'}}>
-              Scan
-            </button>
-          </div>
+        <div class="form-group">
+          <label for="uploadTags" class="control-label">Tags to Apply</label>
+          {{input type="text"
+                  id="uploadTags"
+                  placeholder="Enter space-seperated tags"
+                  class="form-control"
+                  value=newTags}}
         </div>
+
+        <div class="form-group">
+          {{#file-upload addFiles='addFiles' multiple=true}}
+            Add Files
+          {{/file-upload}}
+
+          <button class="btn btn-primary" {{action 'submit'}}>
+            Upload
+          </button>
+        </div>
+
+        {{#if files}}
+          <table class="table table-condensed">
+            <thead>
+              <th>File Name</th>
+              <th>Size</th>
+              <th></th>
+            </thead>
+            <tbody>
+              {{#each file in files}}
+                <tr>
+                  <td>{{file.name}}</td>
+                  <td>{{human-file-size file.size}}</td>
+                  <td>
+                    <button class="btn btn-danger btn-xs" {{action 'removeFile' file}}>
+                      <span class="glyphicon glyphicon-trash"></span>
+                    </button>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        {{/if}}
       </div>
+    </div>
+
+    <div class="tab-content">
+      <div role="tabpanel" {{bind-attr class=":tab-pane isScanActive:active"}}>
+        <div class="form-group">
+          <label for="scanName" class="control-label">Document Name</label>
+          {{input type="text"
+                  id="scanName"
+                  placeholder="Receipt for widgets"
+                  class="form-control"
+                  value=newName}}
+        </div>
+
+        <div class="form-group">
+          <label for="scanTags" class="control-label">Tags to Apply</label>
+          {{input type="text"
+                  id="scanTags"
+                  placeholder="Enter space-seperated tags"
+                  class="form-control"
+                  value=newTags}}
+        </div>
+
+        <div class="form-group">
+          <label for="scanScanner" class="control-label">Scanner Name</label>
+          {{view "select" content=capabilities.scanners
+                          classNames="form-control"
+                          id="scanScanner"
+                          optionValuePath="content.id"
+                          optionLabelPath="content.name"
+                          selection=scannerName}}
+        </div>
+
+        <button class="btn btn-primary" {{action 'scan'}}>
+          Scan
+        </button>
+      </div>
+    </div>
+  </div>
 
   </div>
 </div>

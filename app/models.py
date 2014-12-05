@@ -67,12 +67,38 @@ class Document(db.Model):
             'tags':     [t.id for t in self.tags],
         }
 
+    def apply_tags(self, tags):
+        """
+        For each tag in tags, get or create it and apply it to this document.
+        Note: this does not remove tags from the current document.
+        """
+        if not tags:
+            return self
+
+        for tagname in tags:
+            t = Tag.get_or_create(tagname)
+
+            if t not in self.tags:
+                self.tags.append(t)
+
+        return self
+
 
 class Tag(db.Model):
     __tablename__ = "tags"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, index=True, unique=True)
+
+    def __repr__(self):
+        return "<Tag %r>" % (self.name,)
+
+    def as_json(self):
+        return {
+            'id':        self.id,
+            'name':      self.name,
+            'documents': [x.id for x in self.documents],
+        }
 
     @classmethod
     def get_or_create(klass, name):
@@ -83,13 +109,3 @@ class Tag(db.Model):
         instance = klass(name=name)
         db.session.add(instance)
         return instance
-
-    def __repr__(self):
-        return "<Tag %r>" % (self.name,)
-
-    def as_json(self):
-        return {
-            'id':   self.id,
-            'name': self.name,
-            # TODO: documents?
-        }

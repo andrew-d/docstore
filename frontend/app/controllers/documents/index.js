@@ -9,6 +9,10 @@ export default Ember.ArrayController.extend({
   perPageBinding: "content.perPage",
   totalPagesBinding: "content.totalPages",
 
+  // Default values for pagination.
+  page: 1,
+  perPage: 10,
+
   // Whether or not we have more than one page of items
   haveMultiplePages: function() {
     return this.get('totalPages') > 1;

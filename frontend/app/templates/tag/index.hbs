@@ -1,0 +1,14 @@
+<div class="row">
+  <div class="col-xs-12">
+    <h2>Tag '{{ model.name }}'</h2>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    {{documents-table documents=model.documents}}
+    {{#if haveMultiplePages}}
+      {{page-numbers content=model.documents}}
+    {{/if}}
+  </div>
+</div>
