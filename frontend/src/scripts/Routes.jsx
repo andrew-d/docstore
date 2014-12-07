@@ -8,12 +8,14 @@ var Route = Router.Route,
     RouteHandler = Router.RouteHandler;
 
 var App = require('./App'),
-    Home = require('./Home');
+    Home = require('./Home'),
+    Stats = require('./Stats');
 
 
 var routes = (
-    <Route handler={App} path="/">
-        <DefaultRoute handler={Home} />
+    <Route name="app" handler={App} path="/">
+        <DefaultRoute name="index" handler={Home} />
+        <Route name="stats" handler={Stats} path="/stats" />
     </Route>
 );
 

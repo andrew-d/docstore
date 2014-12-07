@@ -2,13 +2,27 @@ var React = require('react'),
     Morearty = require('morearty'),
     RouteHandler = require('react-router').RouteHandler;
 
+var Ctx = require('./Ctx'),
+    Navbar = require('./Navbar');
+
 var App = React.createClass({
     displayName: 'App',
-    mixins: [Morearty.Mixin],
+
+    componentDidMount: function() {
+        Ctx.init(this);
+    },
 
     render: function() {
-        // Always render the child for now.
-        return <RouteHandler />;
+        return React.withContext({ morearty: Ctx }, function() {
+            return (
+                <div>
+                  <Navbar />
+                  <div className="container">
+                    <RouteHandler binding={Ctx.getBinding()} />
+                  </div>
+                </div>
+            );
+        });
     },
 });
 
