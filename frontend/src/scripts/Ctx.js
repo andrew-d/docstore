@@ -1,9 +1,15 @@
 var Morearty = require('morearty');
 
 var Ctx = Morearty.createContext({
-    // Global store for objects from the server.
+    // Documents list page
     documents: [],
+    documentsPage: 1,
+    documentsPerPage: 10,
+
+    // Tags list page
     tags: [],
+
+    // Files list page
     files: [],
 });
 
