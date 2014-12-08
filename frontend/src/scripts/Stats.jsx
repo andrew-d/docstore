@@ -24,7 +24,7 @@ var Stats = React.createClass({
         });
 
         return (
-          <table class="table table-condensed">
+          <table className="table table-condensed">
             <thead>
               <th>Name</th>
               <th>Vendor</th>
@@ -42,8 +42,8 @@ var Stats = React.createClass({
         var maybeScanners = this.renderScanners();
 
         return (
-            <div class="row">
-              <div class="col-xs-12">
+            <div className="row">
+              <div className="col-xs-12">
                 <h2>Statistics</h2>
 
                 There are {b.get('documents').length} documents(s) in the store.<br/>
