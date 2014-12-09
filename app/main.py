@@ -7,6 +7,10 @@ app = Flask('docstore')
 
 
 def setup_app():
+    # Allow CORS
+    from flask.ext.cors import CORS
+    CORS(app, resources=r'/api/*', headers='Content-Type')
+
     # Generated configuration
     app.config['UPLOAD_FOLDER'] = os.path.join(app.config['DATA_DIRECTORY'],
                                                'uploads')
