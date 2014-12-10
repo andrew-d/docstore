@@ -6,6 +6,22 @@ from flask.ext.sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
+# General overview
+#   - The base model in this application is an `Item`
+#   - An Item can have multiple `File`s
+#   - Each File represents a single file on-disk, along with its size, when it
+#     was created, and the "type" of the file.  The "type" is used to determine
+#     how to display the file in the browser.
+#   - Files are stored in content-addressible storage - i.e. each file is
+#     stored in a directory named by its hash.
+#   - An Item can have multple `Tag`s
+#   - Each Tag is a single name
+#
+# Future work:
+#   - Tags can have `TagAlias`es, such that trying to access a tag with the
+#     aliased name will return the backing tag.
+
+
 tags_rel = db.Table("tags_rel",
     db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
     db.Column("document_id", db.Integer, db.ForeignKey("documents.id")),

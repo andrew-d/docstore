@@ -1,14 +1,16 @@
-var path      = require('path'),
-    gulp      = require('gulp'),
-    gutil     = require('gulp-util'),
-    express   = require('express'),
-    sass      = require('gulp-sass'),
-    minifyCSS = require('gulp-minify-css'),
-    clean     = require('gulp-clean'),
-    watch     = require('gulp-watch'),
-    rev       = require('gulp-rev'),
-    tiny_lr   = require('tiny-lr'),
-    webpack   = require("webpack");
+var clean      = require('gulp-clean'),
+    express    = require('express'),
+    gulp       = require('gulp'),
+    gutil      = require('gulp-util'),
+    minifyCSS  = require('gulp-minify-css'),
+    path       = require('path'),
+    prefix     = require('gulp-autoprefixer'),
+    rev        = require('gulp-rev'),
+    sass       = require('gulp-sass'),
+    sourcemaps = require('gulp-sourcemaps'),
+    tiny_lr    = require('tiny-lr'),
+    watch      = require('gulp-watch'),
+    webpack    = require("webpack");
 
 
 // ----------------------------------------------------------------------
@@ -48,9 +50,17 @@ gulp.task('clean', function() {
 
 gulp.task('sass', function() {
     gulp.src('src/styles/main.scss')
-        .pipe(sass(sassConfig).on('error', gutil.log))
-        .pipe(gulp.env.production ? minifyCSS() : gutil.noop())
-        .pipe(gulp.env.production ? rev()       : gutil.noop())
+        .pipe(sourcemaps.init())
+          .pipe(sass(sassConfig).on('error', gutil.log))
+          .pipe(prefix({
+                // Note: these are the defaults, but I'm specifying them anyway.
+                browsers: ['> 1%', 'last 2 versions', 'Firefox ESR', 'Opera 12.1'],
+                cascade: true,
+                remove: true,
+           }))
+          .pipe(gulp.env.production ? minifyCSS() : gutil.noop())
+          .pipe(gulp.env.production ? rev()       : gutil.noop())
+          .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist/assets'))
 });
 
