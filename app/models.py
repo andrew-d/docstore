@@ -106,6 +106,12 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, index=True, unique=True)
 
+    # Indexed since, when listing tags, we look for .where(Tag.alias_for_id == None)
+    alias_for_id = db.Column(db.Integer,
+                             db.ForeignKey("tags.id"),
+                             nullable=True, index=True)
+    alias_for = db.relationship(lambda: Tag, remote_side=id, backref='aliases')
+
     def __repr__(self):
         return "<Tag %r>" % (self.name,)
 
@@ -117,9 +123,13 @@ class Tag(db.Model):
         }
 
     @classmethod
-    def get_or_create(klass, name):
+    def get_or_create(klass, name, resolve_aliases=True):
         instance = klass.query.filter(klass.name == name).first()
         if instance:
+            # If this is an alias for another tag, return it
+            if instance.alias_for is not None and resolve_aliases:
+                return instance.alias_for
+
             return instance
 
         instance = klass(name=name)

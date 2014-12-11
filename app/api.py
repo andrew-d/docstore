@@ -102,11 +102,17 @@ class TagListAPI(restful.Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('page', type=int, default=1)
         parser.add_argument('per_page', type=int, default=10)
+        parser.add_argument('with_aliases', type=str, default=False)
         args = parser.parse_args()
 
-        paginated = m.Tag.query.paginate(args['page'],
-                                         per_page=args['per_page'],
-                                         error_out=False)
+        q = m.Tag.query
+        if args.with_aliases.lower() not in ["true", "yes", "1"]:
+            q = q.filter(m.Tag.alias_for == None)
+
+        paginated = q.paginate(args['page'],
+                               per_page=args['per_page'],
+                               error_out=False)
+
         tags = [tag.as_json() for tag in paginated.items]
         return {
             'tags': tags,
