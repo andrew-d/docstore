@@ -47,7 +47,7 @@ var Navbar = React.createClass({
               <div id="navbar" className="navbar-collapse collapse">
                 <ul className="nav navbar-nav">
                   <NavbarLink to="index">Home</NavbarLink>
-                  <NavbarLink to="documents">Documents</NavbarLink>
+                  <NavbarLink to="items">Items</NavbarLink>
                   <NavbarLink to="stats">Stats</NavbarLink>
                 </ul>
               </div>

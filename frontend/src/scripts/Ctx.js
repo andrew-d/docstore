@@ -1,9 +1,9 @@
 var Morearty = require('morearty');
 
 var Ctx = Morearty.createContext({
-    // Documents list page
-    documents: [],
-    documentsLoaded: false,
+    // Items list page
+    items: [],
+    itemsLoaded: false,
 
     // Tags list page
     tags: [],

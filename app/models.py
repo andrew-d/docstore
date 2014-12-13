@@ -24,7 +24,7 @@ db = SQLAlchemy()
 
 tags_rel = db.Table("tags_rel",
     db.Column("tag_id", db.Integer, db.ForeignKey("tags.id")),
-    db.Column("document_id", db.Integer, db.ForeignKey("documents.id")),
+    db.Column("item_id", db.Integer, db.ForeignKey("items.id")),
 )
 
 
@@ -38,7 +38,7 @@ class File(db.Model):
     name = db.Column(db.String, nullable=False, index=True, unique=True)
     created = db.Column(db.DateTime, nullable=False,
                         default=datetime.datetime.utcnow)
-    document_id = db.Column(db.Integer, db.ForeignKey('documents.id'))
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
 
     def __repr__(self):
         return '<File %r>' % (self.name,)
@@ -49,12 +49,12 @@ class File(db.Model):
             'size':     self.size,
             'name':     self.name,
             'created':  self.created.isoformat(),
-            'document': self.document_id,
+            'item':     self.item_id,
         }
 
 
-class Document(db.Model):
-    __tablename__ = "documents"
+class Item(db.Model):
+    __tablename__ = "items"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, index=True, unique=True)
@@ -62,16 +62,16 @@ class Document(db.Model):
                         default=datetime.datetime.utcnow)
 
     # Associated files
-    files = db.relationship('File', backref='document', lazy='dynamic')
+    files = db.relationship('File', backref='item', lazy='dynamic')
 
     # General metadata
     meta = db.Column(db.PickleType, nullable=False, default={})
 
     tags = db.relationship('Tag', secondary=tags_rel,
-                           backref=db.backref('documents', lazy='dynamic'))
+                           backref=db.backref('items', lazy='dynamic'))
 
     def __repr__(self):
-        return "<Document %r>" % (self.name,)
+        return "<Item %r>" % (self.name,)
 
     def as_json(self):
         return {
@@ -85,8 +85,8 @@ class Document(db.Model):
 
     def apply_tags(self, tags):
         """
-        For each tag in tags, get or create it and apply it to this document.
-        Note: this does not remove tags from the current document.
+        For each tag in tags, get or create it and apply it to this item.
+        Note: this does not remove tags from the current item.
         """
         if not tags:
             return self
@@ -119,7 +119,7 @@ class Tag(db.Model):
         return {
             'id':        self.id,
             'name':      self.name,
-            'documents': [x.id for x in self.documents],
+            'items': [x.id for x in self.items],
         }
 
     @classmethod

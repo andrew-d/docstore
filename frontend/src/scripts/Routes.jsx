@@ -8,7 +8,7 @@ var Route = Router.Route,
     RouteHandler = Router.RouteHandler;
 
 var App = require('./App'),
-    Documents = require('./Documents'),
+    Items = require('./Items'),
     Home = require('./Home'),
     Stats = require('./Stats');
 
@@ -16,7 +16,7 @@ var App = require('./App'),
 var routes = (
     <Route name="app" handler={App} path="/">
         <DefaultRoute name="index" handler={Home} />
-        <Route name="documents" handler={Documents} path="/documents" />
+        <Route name="items" handler={Items} path="/items" />
         <Route name="stats" handler={Stats} path="/stats" />
     </Route>
 );

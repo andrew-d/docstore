@@ -10,22 +10,22 @@ api_app = Blueprint('api_app', __name__, url_prefix='/api')
 api = restful.Api(api_app)
 
 
-class DocumentListAPI(restful.Resource):
+class ItemListAPI(restful.Resource):
     def get(self):
-        """Get list of all documents"""
+        """Get list of all items"""
         parser = reqparse.RequestParser()
         parser.add_argument('page', location='args', type=int, default=1)
         parser.add_argument('per_page', location='args', type=int, default=10)
         args = parser.parse_args()
 
-        paginated = m.Document.query.paginate(args['page'],
+        paginated = m.Item.query.paginate(args['page'],
                                               per_page=args['per_page'],
                                               error_out=False)
-        documents = [document.as_json() for document in paginated.items]
+        items = [item.as_json() for item in paginated.items]
         tags = [t.as_json() for doc in paginated.items for t in doc.tags]
 
         return {
-            'documents': documents,
+            'items': items,
             'tags': tags,
             'meta': {
                 'total_pages': paginated.pages,
@@ -33,40 +33,40 @@ class DocumentListAPI(restful.Resource):
         }
 
     def post(self):
-        """Create a new document"""
+        """Create a new item"""
         restful.abort(501,
                       message='Creation not supported - '
                               'use the explicit scan/upload endpoints')
 
 
-class DocumentAPI(restful.Resource):
+class ItemAPI(restful.Resource):
     def get(self, id):
-        """Get a specific document"""
-        doc = m.Document.query.get(id)
+        """Get a specific item"""
+        doc = m.Item.query.get(id)
         if not doc:
-            restful.abort(404, message='Document not found')
+            restful.abort(404, message='Item not found')
 
         return {
-            'document': doc.as_json(),
+            'item': doc.as_json(),
             'tags': [t.as_json() for t in doc.tags],
         }
 
     def put(self, id):
-        """Update a specific document"""
-        doc = m.Document.query.get(id)
+        """Update a specific item"""
+        doc = m.Item.query.get(id)
         if not doc:
-            restful.abort(404, message='Document not found')
+            restful.abort(404, message='Item not found')
 
         parser = reqparse.RequestParser()
-        parser.add_argument('document', location='json', type=dict, required=True)
+        parser.add_argument('item', location='json', type=dict, required=True)
         args = parser.parse_args()
 
         try:
-            doc.name = args['document']['name']
-            doc.meta = args['document']['meta']
+            doc.name = args['item']['name']
+            doc.meta = args['item']['meta']
 
             tags = []
-            for t in args['document']['tags']:
+            for t in args['item']['tags']:
                 tag = m.Tag.query.get(t)
                 if not tag:
                     restful.abort(404, message='Tag "%d" not found' % (t,))
@@ -80,16 +80,16 @@ class DocumentAPI(restful.Resource):
         db.session.add(doc)
         db.session.commit()
         return {
-            'document': doc.as_json(),
+            'item': doc.as_json(),
             'tags': [t.as_json() for t in doc.tags],
         }
 
 
     def delete(self, id):
-        """Delete a specific document"""
-        doc = m.Document.query.get(id)
+        """Delete a specific item"""
+        doc = m.Item.query.get(id)
         if not doc:
-            restful.abort(404, message='Document not found')
+            restful.abort(404, message='Item not found')
 
         db.session.delete(doc)
         db.session.commit()
@@ -180,8 +180,8 @@ class CapabilitiesAPI(restful.Resource):
 
 
 
-api.add_resource(DocumentListAPI, "/documents")
-api.add_resource(DocumentAPI, "/documents/<int:id>")
+api.add_resource(ItemListAPI, "/items")
+api.add_resource(ItemAPI, "/items/<int:id>")
 api.add_resource(TagListAPI, "/tags")
 api.add_resource(TagAPI, "/tags/<int:id>")
 api.add_resource(CapabilitiesAPI, "/capabilities")

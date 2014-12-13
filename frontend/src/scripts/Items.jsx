@@ -7,17 +7,17 @@ var React = require('react'),
 var Spinner = require('./components/Spinner');
 
 
-var Documents = React.createClass({
-    displayName: 'Documents',
+var Items = React.createClass({
+    displayName: 'Items',
     mixins: [Morearty.Mixin, State],
 
     componentDidMount: function() {
         var self = this;
 
-        // Reset the currently loaded documents when this component is mounted.
+        // Reset the currently loaded items when this component is mounted.
         this.getDefaultBinding().atomically()
-            .set('documentsLoaded', false)
-            .set('documents', [])
+            .set('itemsLoaded', false)
+            .set('items', [])
             .commit();
 
         var query = this.getQuery(),
@@ -26,13 +26,13 @@ var Documents = React.createClass({
 
         // TODO: move this to a flux action - e.g. Reflux
         request
-            .get('http://localhost:8080' + '/api/documents')
+            .get('http://localhost:8080' + '/api/items')
             .query({page: currentPage, per_page: perPage})
             .promise()
             .then(function(res) {
                 self.getDefaultBinding().atomically()
-                    .set('documentsLoaded', true)
-                    .set('documents', Immutable.fromJS(res.body))
+                    .set('itemsLoaded', true)
+                    .set('items', Immutable.fromJS(res.body))
                     .commit();
             })
             .catch(function(e) {
@@ -44,19 +44,19 @@ var Documents = React.createClass({
     render: function() {
         var b = this.getDefaultBinding();
 
-        // TODO: render real table of documents
-        var documentsTable = b.get('documentsLoaded') ?
-            <div>Documents Table</div> :
+        // TODO: render real table of items
+        var itemsTable = b.get('itemsLoaded') ?
+            <div>Items Table</div> :
             <Spinner />;
 
         return (
             <div>
-                <h1>Documents</h1>
+                <h1>Items</h1>
 
-                {documentsTable}
+                {itemsTable}
             </div>
         );
     },
 });
 
-module.exports = Documents;
+module.exports = Items;
