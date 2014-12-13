@@ -10,6 +10,9 @@ var App = React.createClass({
 
     componentDidMount: function() {
         Ctx.init(this);
+
+        // Debugging
+        if( process.env.NODE_ENV !== 'production' ) window.Ctx = Ctx;
     },
 
     render: function() {

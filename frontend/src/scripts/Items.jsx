@@ -4,7 +4,9 @@ var React = require('react'),
     State = require('react-router').State,
     request = require('superagent');
 
-var Spinner = require('./components/Spinner');
+var Spinner = require('./components/Spinner'),
+    ItemTable = require('./components/ItemTable'),
+    Pagination = require('./components/Pagination');
 
 
 var Items = React.createClass({
@@ -32,7 +34,7 @@ var Items = React.createClass({
             .then(function(res) {
                 self.getDefaultBinding().atomically()
                     .set('itemsLoaded', true)
-                    .set('items', Immutable.fromJS(res.body))
+                    .set('items', Immutable.fromJS(res.body.items))
                     .commit();
             })
             .catch(function(e) {
@@ -44,9 +46,8 @@ var Items = React.createClass({
     render: function() {
         var b = this.getDefaultBinding();
 
-        // TODO: render real table of items
         var itemsTable = b.get('itemsLoaded') ?
-            <div>Items Table</div> :
+            <ItemTable binding={b.sub('items')} /> :
             <Spinner />;
 
         return (
@@ -54,6 +55,9 @@ var Items = React.createClass({
                 <h1>Items</h1>
 
                 {itemsTable}
+
+                {/* TODO: make this really paginate */}
+                <Pagination currPage={1} totalPages={30} />
             </div>
         );
     },

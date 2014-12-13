@@ -46,9 +46,9 @@ var Stats = React.createClass({
               <div className="col-xs-12">
                 <h2>Statistics</h2>
 
-                There are {b.get('items').length} items(s) in the store.<br/>
-                There are {b.get('files').length} file(s) saved, totalling TKTK.<br/>
-                There are {b.get('tags').length} tag(s) in the store.
+                There are {b.get('items').count()} items(s) in the store.<br/>
+                There are {b.get('files').count()} file(s) saved, totalling TKTK.<br/>
+                There are {b.get('tags').count()} tag(s) in the store.
 
                 <h3>Scanners</h3>
                 {maybeScanners}
