@@ -31,7 +31,9 @@ var rerender = function rerender(structure, el) {
 
         requestAnimationFrame(function forceRender() {
             queuedChange = false;
-            // TODO: arguments?
+
+            // Note: we call this without arguments so as to use the existing
+            // saved Handler.
             render();
         });
     });

@@ -5,7 +5,6 @@ var clean      = require('gulp-clean'),
     minifyCSS  = require('gulp-minify-css'),
     path       = require('path'),
     prefix     = require('gulp-autoprefixer'),
-    rev        = require('gulp-rev'),
     sass       = require('gulp-sass'),
     sourcemaps = require('gulp-sourcemaps'),
     tiny_lr    = require('tiny-lr'),
@@ -56,16 +55,31 @@ gulp.task('sass', function() {
                 remove: true,
            }))
           .pipe(gulp.env.production ? minifyCSS() : gutil.noop())
-          .pipe(gulp.env.production ? rev()       : gutil.noop())
           .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist/assets'))
 });
 
 
+// Copy over fonts that Bootstrap expects.
+gulp.task('vendor_fonts', function() {
+    var fontPaths = [
+        'bootstrap/dist/fonts/glyphicons-halflings-regular.eot',
+        'bootstrap/dist/fonts/glyphicons-halflings-regular.svg',
+        'bootstrap/dist/fonts/glyphicons-halflings-regular.ttf',
+        'bootstrap/dist/fonts/glyphicons-halflings-regular.woff',
+    ];
+    var paths = fontPaths.map(function(p) {
+        return path.resolve("./bower_components", p);
+    });
+
+    gulp.src(paths)
+        .pipe(gulp.dest('dist/assets/fonts'));
+});
+
+
 // Some JS and CSS files we want to grab from Bower and put them in a
-// dist/assets/vendor directory.  For example, the es5-sham.js is loaded in the
-// HTML only for IE via a conditional comment.
-gulp.task('vendor', function() {
+// dist/assets/vendor directory.
+gulp.task('vendor', ['vendor_fonts'], function() {
     var paths = vendorPaths.map(function(p) {
         return path.resolve("./bower_components", p);
     });
@@ -76,6 +90,7 @@ gulp.task('vendor', function() {
 
 // Just copy over remaining assets to dist. Exclude the styles and scripts as
 // we process those elsewhere
+// TODO: consider using, e.g. gulp-rev-replace to process index.html
 gulp.task('copy', function() {
     gulp.src([
         'src/**/*',
@@ -94,6 +109,13 @@ gulp.task('webpack', function(callback) {
     execWebpack(webpackConfig);
     return callback()
 });
+
+gulp.task('watch', ['build'], function() {
+    gulp.watch(['./src/**/*'], function(evt) {
+        gulp.run('build');
+    });
+});
+
 
 gulp.task('dev', ['build'], function() {
     servers = createServers(httpPort, 35729);
