@@ -43,7 +43,7 @@ def initdb():
 
 @cli.command()
 @click.option('--yes', is_flag=True, callback=abort_cb,
-              expose_value=False, prompt='Do you want to continue?')
+              expose_value=False, prompt='Do you really want to drop the database?')
 def dropdb():
     """Drop the database"""
     with app.app_context():

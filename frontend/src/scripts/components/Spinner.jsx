@@ -1,36 +1,31 @@
 // Adapted from:
 //      https://github.com/chenglou/react-spinner/blob/master/index.jsx
-var React = require('react');
+var React = require('react'),
+    component = require('omniscient');
 
 
-var Spinner = React.createClass({
-    propTypes: {
-        className: React.PropTypes.string,
-    },
+var Spinner = component('Spinner', function(props) {
+    var bars = [];
+    var props = this.props;
 
-    render: function() {
-        var bars = [];
-        var props = this.props;
+    for (var i = 0; i < 12; i++) {
+        var barStyle = {};
 
-        for (var i = 0; i < 12; i++) {
-            var barStyle = {};
+        barStyle.WebkitAnimationDelay = barStyle.animationDelay =
+            (i - 12) / 10 + 's';
+        barStyle.WebkitTransform = barStyle.transform =
+            'rotate(' + (i * 30) + 'deg) translate(146%)';
 
-            barStyle.WebkitAnimationDelay = barStyle.animationDelay =
-                (i - 12) / 10 + 's';
-            barStyle.WebkitTransform = barStyle.transform =
-                'rotate(' + (i * 30) + 'deg) translate(146%)';
-
-            bars.push(
-                <div style={barStyle} className="react-spinner_bar" key={i} />
-            );
-        }
-
-        return (
-            <div {...props} className={(props.className || '') + ' react-spinner'}>
-                {bars}
-            </div>
+        bars.push(
+            <div style={barStyle} className="react-spinner_bar" key={i} />
         );
     }
+
+    return (
+        <div {...props} className={(props.className || '') + ' react-spinner'}>
+          {bars}
+        </div>
+    );
 });
 
 module.exports = Spinner;

@@ -16,10 +16,7 @@ db = SQLAlchemy()
 #     stored in a directory named by its hash.
 #   - An Item can have multple `Tag`s
 #   - Each Tag is a single name
-#
-# Future work:
-#   - Tags can have `TagAlias`es, such that trying to access a tag with the
-#     aliased name will return the backing tag.
+#   - Tags can be aliased to another Tag
 
 
 tags_rel = db.Table("tags_rel",

@@ -1,24 +1,20 @@
 var React = require('react'),
-    Morearty = require('morearty'),
+    component = require('omniscient'),
     moment = require('moment');
 
 
-var ItemTableRow = React.createClass({
-    mixins: [Morearty.Mixin],
+var ItemTableRow = component('ItemTableRow', function(props) {
+    var c = props.cursor,
+        niceTime = moment.utc(c.get('created')).fromNow();
 
-    render: function() {
-        var binding = this.getDefaultBinding(),
-            niceTime = moment.utc(binding.get('created')).fromNow();
-
-        return (
-            <tr>
-              <td>{binding.get('name')}</td>
-              <td>{niceTime}</td>
-              <td>{binding.get('files').count()}</td>
-              <td>{binding.get('tags').toJS()}</td>
-            </tr>
-        );
-    },
+    return (
+        <tr>
+          <td>{c.get('name')}</td>
+          <td>{niceTime}</td>
+          <td>{c.get('files').count()}</td>
+          <td>{c.get('tags').toJS()}</td>
+        </tr>
+    );
 });
 
 module.exports = ItemTableRow;

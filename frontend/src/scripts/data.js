@@ -1,6 +1,6 @@
-var Morearty = require('morearty');
+var immstruct = require('immstruct');
 
-var Ctx = Morearty.createContext({
+var data = immstruct({
     // Items list page
     items: [],
     itemsLoaded: false,
@@ -12,4 +12,4 @@ var Ctx = Morearty.createContext({
     files: [],
 });
 
-module.exports = Ctx;
+module.exports = data;

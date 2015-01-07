@@ -36,6 +36,15 @@ module.exports = {
 
             // Process JSX with some ES6 features
             { test: /\.jsx$/, loader: "jsx-loader?harmony" },
+
+            // Convert ES6 --> ES5
+            { test: /\.js$/, exclude: /node_modules/, loader: "6to5-loader" },
+
+            // React.js requires es5-shim and es5-sham
+            { test: require.resolve("react"),
+              loader: "imports?shim=es5-shim/es5-shim&sham=es5-shim/es5-sham" },
+
+            // Save JSON files in the bundle too
             { test: /\.json$/, loader: "json" },
         ],
 
