@@ -1,0 +1,12 @@
+Cython==0.21.2
+Pillow==2.7.0
+falcon==0.2.0b2
+flake8==2.3.0
+gunicorn==19.1.1
+mccabe==0.3
+numpy==1.9.1
+peewee==2.4.5
+pep8==1.5.7
+pyflakes==0.8.1
+python-mimeparse==0.1.4
+six==1.9.0
