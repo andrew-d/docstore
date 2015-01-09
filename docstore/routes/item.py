@@ -58,7 +58,7 @@ class ItemsResource(BaseResource):
 
 class ItemResource(BaseResource):
     """
-    /api/items/<item id>
+    /api/items/{item_id}
     """
     @falcon.after(serialize)
     def on_get(self, req, resp, item_id):
@@ -71,9 +71,7 @@ class ItemResource(BaseResource):
         try:
             item = Item.get(Item.id == item_id)
         except Item.DoesNotExist:
-            raise falcon.HTTPNotFound('Item Not Found',
-                                      'The item with the given ID does not '
-                                      'exist.')
+            raise falcon.HTTPNotFound()
 
         req.context['doc'] = {'item': item.as_json()}
 
@@ -100,9 +98,7 @@ class ItemResource(BaseResource):
         try:
             item = Item.get(Item.id == item_id)
         except Item.DoesNotExist:
-            raise falcon.HTTPNotFound('Item Not Found',
-                                      'The item with the given ID does not '
-                                      'exist.')
+            raise falcon.HTTPNotFound()
 
         item.delete_instance()
         resp.status = falcon.HTTP_204
