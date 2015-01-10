@@ -7,18 +7,23 @@ var EmberApp = require('ember-cli/lib/broccoli/ember-app'),
 var app = new EmberApp();
 
 // ----------------------------------------------------------------------
-// Bootstrap
+// Pure (https://github.com/yahoo/pure/)
 app.import({
-  development: 'bower_components/bootstrap/dist/css/bootstrap.css',
-  production:  'bower_components/bootstrap/dist/css/bootstrap.min.css',
-});
-app.import({
-  development: 'bower_components/bootstrap/dist/js/bootstrap.js',
-  production:  'bower_components/bootstrap/dist/js/bootstrap.min.js',
+  development: 'bower_components/pure/pure.css',
+  production:  'bower_components/pure/pure.min.css',
 });
 
+// ----------------------------------------------------------------------
+// Font Awesome (https://fortawesome.github.io/Font-Awesome/)
+app.import({
+  development: 'bower_components/fontawesome/css/font-awesome.css',
+  production:  'bower_components/fontawesome/css/font-awesome.min.css',
+});
+app.import('bower_components/fontawesome/fonts/FontAwesome.otf', {
+  destDir: 'fonts',
+});
 ['eot', 'svg', 'ttf', 'woff'].forEach(function(ext) {
-  app.import('bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.' + ext, {
+  app.import('bower_components/fontawesome/fonts/fontawesome-webfont.' + ext, {
     destDir: 'fonts',
   });
 });
@@ -32,6 +37,17 @@ app.import('bower_components/holderjs/holder.js');
 app.import({
   development: 'bower_components/momentjs/moment.js',
   production:  'bower_components/momentjs/min/moment.min.js',
+});
+
+// ----------------------------------------------------------------------
+// Lodash (https://lodash.com)
+app.import({
+  development: 'bower_components/lodash/dist/lodash.js',
+  production:  'bower_components/lodash/dist/lodash.min.js'
+}, {
+  'lodash': [
+    'default'
+  ]
 });
 
 
