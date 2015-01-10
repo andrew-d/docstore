@@ -23,6 +23,18 @@ app.import({
   });
 });
 
+// ----------------------------------------------------------------------
+// Holder.js (https://github.com/imsky/holder)
+app.import('bower_components/holderjs/holder.js');
+
+// ----------------------------------------------------------------------
+// Moment.js (https://github.com/moment/moment)
+app.import({
+  development: 'bower_components/momentjs/moment.js',
+  production:  'bower_components/momentjs/min/moment.min.js',
+});
+
+
 
 var appTree = app.toTree();
 

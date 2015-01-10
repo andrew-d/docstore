@@ -1,0 +1,13 @@
+<div class="row">
+  {{#each item in items}}
+    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+      <a href="#" class="thumbnail">
+        <img data-src="holder.js/100%x150" />
+        <div class="caption">
+          <h5>Item {{item.id}}</h5>
+        </div>
+      </a>
+    </div>
+  {{/each}}
+</div>
+{{yield}}

@@ -1,7 +1,8 @@
 <h2>All Items</h2>
 
-<ul>
-  {{#each item in model}}
-    <li>Item {{item.id}} - {{item.created_at}}</li>
-  {{/each}}
-</ul>
+{{#if isGrid}}
+  {{items-grid items=model}}
+{{/if}}
+{{#if isList}}
+  {{items-list items=model}}
+{{/if}}
