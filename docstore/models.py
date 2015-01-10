@@ -40,10 +40,20 @@ class ItemTag(BaseModel):
 
 class File(BaseModel):
     id = PrimaryKeyField()
+
     name = CharField(null=False, unique=True)
     size = IntegerField(null=False)
     created_at = DateTimeField(null=False, default=datetime.utcnow)
+
+    # A unique pair
     item = ForeignKeyField(Item, related_name='files')
+    order = IntegerField(null=False)
+
+    class Meta(object):
+        indexes = (
+            # A UNIQUE index on (item, order)
+            (('item', 'order'), True),
+        )
 
     def as_json(self):
         return {

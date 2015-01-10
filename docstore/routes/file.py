@@ -60,11 +60,11 @@ class FileResource(BaseResource):
                                         'The file ID is not a valid integer.')
 
         try:
-            file = File.get(File.id == file_id)
+            ff = File.get(File.id == file_id)
         except File.DoesNotExist:
             raise falcon.HTTPNotFound()
 
-        req.context['doc'] = {'file': file.as_json()}
+        req.context['doc'] = {'file': ff.as_json()}
 
     def on_delete(self, req, resp, file_id):
         try:
@@ -74,11 +74,11 @@ class FileResource(BaseResource):
                                         'The file ID is not a valid integer.')
 
         try:
-            file = File.get(File.id == file_id)
+            ff = File.get(File.id == file_id)
         except File.DoesNotExist:
             raise falcon.HTTPNotFound()
 
-        file.delete_instance()
+        ff.delete_instance()
         resp.status = falcon.HTTP_204
 
 
@@ -91,7 +91,7 @@ class FileContentResource(BaseResource):
                                         'The file ID is not a valid integer.')
 
         try:
-            file = File.get(File.id == file_id)
+            ff = File.get(File.id == file_id)
         except File.DoesNotExist:
             raise falcon.HTTPNotFound()
 
