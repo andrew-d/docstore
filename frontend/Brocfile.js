@@ -1,6 +1,8 @@
 /* global require, module */
 
-var EmberApp = require('ember-cli/lib/broccoli/ember-app');
+var EmberApp = require('ember-cli/lib/broccoli/ember-app'),
+    es3 = require('broccoli-es3-safe-recast'),
+    isProduction = ( process.env.EMBER_ENV || 'development' ) === 'production';
 
 var app = new EmberApp();
 
@@ -16,8 +18,17 @@ app.import({
 });
 
 ['eot', 'svg', 'ttf', 'woff'].forEach(function(ext) {
-  app.import('bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.' + ext);
+  app.import('bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.' + ext, {
+    destDir: 'fonts',
+  });
 });
 
 
-module.exports = app.toTree();
+var appTree = app.toTree();
+
+// Only apply the ES3 transform in production - it takes a long time.
+if( isProduction ) {
+  appTree = es3(appTree);
+}
+
+module.exports = appTree;
