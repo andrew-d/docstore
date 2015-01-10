@@ -1,18 +1,37 @@
-from peewee import *
 from datetime import datetime
 
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, backref
 
-database_proxy = Proxy()
+
+Base = declarative_base()
 
 
-class BaseModel(Model):
-    class Meta(object):
-        database = database_proxy
+item_tags = Table('item_tags', Base.metadata,
+    Column('item_id', Integer, ForeignKey('items.id')),
+    Column('tag_id', Integer, ForeignKey('tags.id'))
+)
 
 
-class Tag(BaseModel):
-    id = PrimaryKeyField()
-    name = CharField(null=False, unique=True)
+collection_items = Table('collection_items', Base.metadata,
+    Column('collection_id', Integer, ForeignKey('collections.id')),
+    Column('item_id', Integer, ForeignKey('items.id'))
+)
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
 
     def as_json(self):
         return {
@@ -21,39 +40,33 @@ class Tag(BaseModel):
         }
 
 
-class Item(BaseModel):
-    id = PrimaryKeyField()
-    created_at = DateTimeField(null=False, default=datetime.utcnow)
+class Item(Base):
+    __tablename__ = "items"
 
-    def as_json(self):
-        return {
-            'id':         self.id,
-            'created_at': self.created_at.isoformat(),
-            'files':      [x.id for x in self.files],
-        }
+    id = Column(Integer, primary_key=True)
+
+    discriminator = Column('type', String(50))
+    __mapper_args__ = {'polymorphic_on': discriminator}
+
+    # Each item can have tags and possibly be part of collections
+    # TODO: is this polymorphic?
+    tags = relationship('Tag',
+                        secondary=item_tags,
+                        backref='items')
+    collections = relationship('Collection',
+                               secondary=collection_items,
+                               backref='children')
 
 
-class ItemTag(BaseModel):
-    item = ForeignKeyField(Item)
-    tag = ForeignKeyField(Tag)
+class File(Item):
+    __tablename__ = "files"
+    __mapper_args__ = {'polymorphic_identity': 'file'}
 
+    file_id = Column('id', Integer, ForeignKey('items.id'), primary_key=True)
 
-class File(BaseModel):
-    id = PrimaryKeyField()
-
-    name = CharField(null=False, unique=True)
-    size = IntegerField(null=False)
-    created_at = DateTimeField(null=False, default=datetime.utcnow)
-
-    # A unique pair
-    item = ForeignKeyField(Item, related_name='files')
-    order = IntegerField(null=False)
-
-    class Meta(object):
-        indexes = (
-            # A UNIQUE index on (item, order)
-            (('item', 'order'), True),
-        )
+    name = Column(String, nullable=False, unique=True)
+    size = Column(Integer, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     def as_json(self):
         return {
@@ -61,15 +74,19 @@ class File(BaseModel):
             'name':       self.name,
             'size':       self.size,
             'created_at': self.created_at.isoformat(),
-            'item':       self.item.id,
+            #'item':       self.item.id,
         }
 
 
+class Collection(Item):
+    __tablename__ = "collections"
+    __mapper_args__ = {'polymorphic_identity': 'collection'}
+
+    coll_id = Column('id', Integer, ForeignKey('items.id'), primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+
+
+
 # TODO: configure me
-database_proxy.initialize(SqliteDatabase(":memory:"))
-database_proxy.create_tables([
-    File,
-    Item,
-    ItemTag,
-    Tag,
-], safe=True)
+engine = create_engine('sqlite://:memory:')
+Base.metadata.create_all(engine)
