@@ -87,6 +87,7 @@ class Collection(Item):
 
 
 
-# TODO: configure me
-engine = create_engine('sqlite://:memory:')
-Base.metadata.create_all(engine)
+def connect_db(conn_string):
+    # TODO: configure me
+    engine = create_engine('sqlite://:memory:')
+    Base.metadata.create_all(engine)

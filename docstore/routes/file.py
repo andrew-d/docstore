@@ -1,102 +1,71 @@
 import logging
 
-import falcon
+from bottle import abort, request, response
 
-from ..base import BaseResource
+from ..app import app
 from ..models import File
-from ..hooks import deserialize, serialize
 
 
 LOG = logging.getLogger(__name__)
 
 
-class FilesResource(BaseResource):
-    """
-    /api/files
-    """
-    @falcon.after(serialize)
-    def on_get(self, req, resp):
-        # Pagination
-        try:
-            offset = int(req.get_param('offset') or 0)
-            limit = int(req.get_param('limit') or 20)
-        except ValueError:
-            offset = 0
-            limit = 20
+@app.get('/api/files')
+def files_get_many(db):
+    # Pagination
+    try:
+        offset = int(request.query.offset or 0)
+        limit = int(request.query.limit or 20)
+    except ValueError:
+        offset = 0
+        limit = 20
 
-        # Get all files, offset by the limit
-        query = (File
-                 .select()
-                 .offset(offset)
-                 .limit(limit)
-                 .order_by(File.id)
-                 )
+    # Get all files, offset by the limit
+    query = (db.query(File)
+             .order_by(File.id)
+             .offset(offset)
+             .limit(limit)
+             )
 
-        files = [x.as_json() for x in query]
+    files = [x.as_json() for x in query]
 
-        req.context['doc'] = {
-            'files': files,
-            'meta': {
-                'total': File.select().count(),
-            },
-        }
-
-    def on_post(self, req, resp):
-        raise falcon.HTTPError(falcon.HTTP_501,
-                               'Not Implemented',
-                               'TODO implement me')
+    return {
+        'files': files,
+        'meta': {
+            'total': db.query(File).count(),
+        },
+    }
 
 
-class FileResource(BaseResource):
-    """
-    /api/files/{file_id}
-    """
-    @falcon.after(serialize)
-    def on_get(self, req, resp, file_id):
-        try:
-            file_id = int(file_id)
-        except ValueError:
-            raise falcon.HTTPBadRequest('Invalid File ID',
-                                        'The file ID is not a valid integer.')
-
-        try:
-            ff = File.get(File.id == file_id)
-        except File.DoesNotExist:
-            raise falcon.HTTPNotFound()
-
-        req.context['doc'] = {'file': ff.as_json()}
-
-    def on_delete(self, req, resp, file_id):
-        try:
-            file_id = int(file_id)
-        except ValueError:
-            raise falcon.HTTPBadRequest('Invalid File ID',
-                                        'The file ID is not a valid integer.')
-
-        try:
-            ff = File.get(File.id == file_id)
-        except File.DoesNotExist:
-            raise falcon.HTTPNotFound()
-
-        ff.delete_instance()
-        resp.status = falcon.HTTP_204
+@app.post('/api/files')
+def files_post(db):
+    abort(501, 'Not Implemented')
 
 
-class FileContentResource(BaseResource):
-    def on_get(self, req, resp, file_id):
-        try:
-            file_id = int(file_id)
-        except ValueError:
-            raise falcon.HTTPBadRequest('Invalid File ID',
-                                        'The file ID is not a valid integer.')
+@app.get('/api/files/<file_id:int>')
+def files_get_one(file_id, db):
+    ff = db.query(File).filter_by(id=file_id).first()
+    if not ff:
+        abort(404, '')
 
-        try:
-            ff = File.get(File.id == file_id)
-        except File.DoesNotExist:
-            raise falcon.HTTPNotFound()
+    return {'file': ff.as_json()}
 
-        # TODO: serve the contents of the file
-        # TODO: be sure to try out the WSGI sendfile, if it exists
-        raise falcon.HTTPError(falcon.HTTP_501,
-                               'Not Implemented',
-                               'TODO implement me')
+
+@app.delete('/api/files/<file_id:int>')
+def files_delete_one(file_id, db):
+    ff = db.query(File).filter_by(id=file_id).first()
+    if not ff:
+        abort(404, '')
+
+    ff.delete_instance()
+    response.status = 204
+
+
+@app.get('/api/files/<file_id:int>/content')
+def files_get_content(file_id, db):
+    ff = db.query(File).filter_by(id=file_id).first()
+    if not ff:
+        abort(404, '')
+
+    # TODO: serve the contents of the file
+    # TODO: be sure to try out the WSGI sendfile, if it exists
+    abort(501, 'Not Implemented')

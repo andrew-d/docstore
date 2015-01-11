@@ -1,13 +1,10 @@
-import falcon
+from bottle import error
 
-from .hooks import check_media_type
-#from .routes.item import ItemResource, ItemsResource
-from .routes.file import FileResource, FilesResource, FileContentResource
+# Import all the routes.  As each route is imported, they will register their
+# handlers on the app instance.
+from .routes import file
 
 
-api = falcon.API(before=[check_media_type])
-#api.add_route('/api/items',                     ItemsResource())
-#api.add_route('/api/items/{item_id}',           ItemResource())
-api.add_route('/api/files',                     FilesResource())
-api.add_route('/api/files/{file_id}',           FileResource())
-api.add_route('/api/files/{file_id}/content',   FileContentResource())
+@error(404)
+def error404(error):
+    return 'Not Found'
