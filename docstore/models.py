@@ -84,10 +84,3 @@ class Collection(Item):
 
     coll_id = Column('id', Integer, ForeignKey('items.id'), primary_key=True)
     name = Column(String, nullable=False, unique=True)
-
-
-
-def connect_db(conn_string):
-    # TODO: configure me
-    engine = create_engine('sqlite://:memory:')
-    Base.metadata.create_all(engine)

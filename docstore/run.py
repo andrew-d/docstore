@@ -1,3 +1,4 @@
+import bottle
 from .app import app
 
 # Importing this registers our routes
@@ -26,5 +27,10 @@ if __name__ == "__main__":
     # Configure the application
     configure_app()
 
+    # Add middleware.
+    ##from .middleware import StripPathMiddleware
+    ##myapp = StripPathMiddleware(app)
+    myapp = app
+
     # Run the application
-    app.run(host='localhost', port=8000, server='bjoern')
+    bottle.run(app=myapp, host='localhost', port=8000, server='bjoern')
