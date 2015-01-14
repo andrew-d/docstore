@@ -15,15 +15,15 @@ from sqlalchemy.orm import relationship, backref
 Base = declarative_base()
 
 
-item_tags = Table('item_tags', Base.metadata,
-    Column('item_id', Integer, ForeignKey('items.id')),
-    Column('tag_id', Integer, ForeignKey('tags.id'))
+file_tags = Table('file_tags', Base.metadata,
+    Column('file_id', Integer, ForeignKey('files.id'), nullable=False),
+    Column('tag_id', Integer, ForeignKey('tags.id'), nullable=False)
 )
 
 
-collection_items = Table('collection_items', Base.metadata,
-    Column('collection_id', Integer, ForeignKey('collections.id')),
-    Column('item_id', Integer, ForeignKey('items.id'))
+collection_files = Table('collection_files', Base.metadata,
+    Column('collection_id', Integer, ForeignKey('collections.id'), nullable=False),
+    Column('file_id', Integer, ForeignKey('files.id'), nullable=False)
 )
 
 
@@ -40,33 +40,21 @@ class Tag(Base):
         }
 
 
-class Item(Base):
-    __tablename__ = "items"
+class File(Base):
+    __tablename__ = "files"
 
     id = Column(Integer, primary_key=True)
-
-    discriminator = Column('type', String(50))
-    __mapper_args__ = {'polymorphic_on': discriminator}
-
-    # Each item can have tags and possibly be part of collections
-    # TODO: is this polymorphic?
-    tags = relationship('Tag',
-                        secondary=item_tags,
-                        backref='items')
-    collections = relationship('Collection',
-                               secondary=collection_items,
-                               backref='children')
-
-
-class File(Item):
-    __tablename__ = "files"
-    __mapper_args__ = {'polymorphic_identity': 'file'}
-
-    file_id = Column('id', Integer, ForeignKey('items.id'), primary_key=True)
 
     name = Column(String, nullable=False, unique=True)
     size = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    tags = relationship('Tag',
+                        secondary=file_tags,
+                        backref='files')
+    collections = relationship('Collection',
+                               secondary=collection_files,
+                               backref='files')
 
     def as_json(self):
         return {
@@ -74,13 +62,27 @@ class File(Item):
             'name':       self.name,
             'size':       self.size,
             'created_at': self.created_at.isoformat(),
-            #'item':       self.item.id,
         }
 
 
-class Collection(Item):
+class Collection(Base):
     __tablename__ = "collections"
-    __mapper_args__ = {'polymorphic_identity': 'collection'}
 
-    coll_id = Column('id', Integer, ForeignKey('items.id'), primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
+
+    # A collection can optionally be a member of another collection
+    parent_id = Column(Integer, ForeignKey('collections.id'), nullable=True)
+    parent = relationship('Collection',
+                          remote_side='Collection.id',
+                          backref='children')
+
+
+    def as_json(self):
+        return {
+            'id':     self.id,
+            'name':   self.name,
+            'parent': self.parent,
+            #children
+            #files
+        }

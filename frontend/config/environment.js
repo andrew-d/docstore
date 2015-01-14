@@ -22,6 +22,10 @@ module.exports = function(environment) {
       'img-src': "'self' data:",
       'style-src': "'self' 'unsafe-inline'",
     },
+
+    'ember-apijax': {
+      host: 'http://localhost:8000',
+    },
   };
 
   if (environment === 'development') {
@@ -45,7 +49,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-
+    ENV['ember-apijax']['host'] = window.location.protocol + '//' + window.location.host + '/api';
   }
 
   return ENV;

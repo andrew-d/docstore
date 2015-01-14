@@ -14,6 +14,6 @@ export default Ember.Controller.extend(Paginated, {
   }.property('display'),
 
   total: function(){
-    return this.store.metadataFor('item').total;
+    return this.store.metadataFor('file').total;
   }.property('model')
 });
