@@ -7,12 +7,19 @@
   </thead>
   <tbody>
     {{#each item in items}}
-      <tr>
+      {{#link-to 'file' item.id tagName="tr"}}
         <td>{{item.id}}</td>
         <td>{{moment-calendar item.created_at}}</td>
         <td>{{item.files.length}}</td>
-        <td>TODO</td>
-      </tr>
+        <td>
+          {{! TODO: This doesn't properly comma-ify the last item }}
+          {{#each tag in item.tags ~}}
+            {{tag.name}},
+          {{else}}
+            <i>None</i>
+          {{~/each}}
+        </td>
+      {{/link-to}}
     {{/each}}
   </tbody>
 </table>

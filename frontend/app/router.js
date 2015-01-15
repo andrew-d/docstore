@@ -6,7 +6,11 @@ var Router = Ember.Router.extend({
 });
 
 Router.map(function() {
-  this.resource("files", function() {});
+  this.resource("files", function() {
+    this.resource("file", {
+      path: ":file_id"
+    }, function() {});
+  });
 });
 
 export default Router;
