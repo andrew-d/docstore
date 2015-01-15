@@ -2,5 +2,7 @@ import DS from 'ember-data';
 
 export default DS.Model.extend({
   name:  DS.attr('string'),
-  files: DS.hasMany('file'),
+
+  // TODO: can this be not async?
+  files: DS.hasMany('file', {async: true}),
 });

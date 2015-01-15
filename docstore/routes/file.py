@@ -47,7 +47,9 @@ def files_get_one(file_id, db):
     if not ff:
         abort(404, '')
 
-    return {'file': ff.as_json()}
+    return {
+        'file': ff.as_json(),
+    }
 
 
 @app.delete('/api/files/<file_id:int>')

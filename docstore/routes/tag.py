@@ -46,7 +46,9 @@ def tags_get_one(tag_id, db):
     if not tag:
         abort(404, '')
 
-    return {'tag': tag.as_json()}
+    return {
+        'tag': tag.as_json(),
+    }
 
 
 @app.delete('/api/tags/<tag_id:int>')

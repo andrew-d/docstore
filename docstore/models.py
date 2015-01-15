@@ -35,8 +35,9 @@ class Tag(Base):
 
     def as_json(self):
         return {
-            'id':   self.id,
-            'name': self.name,
+            'id':    self.id,
+            'name':  self.name,
+            'files': [x.id for x in self.files],
         }
 
 
@@ -58,10 +59,12 @@ class File(Base):
 
     def as_json(self):
         return {
-            'id':         self.id,
-            'name':       self.name,
-            'size':       self.size,
-            'created_at': self.created_at.isoformat(),
+            'id':          self.id,
+            'name':        self.name,
+            'size':        self.size,
+            'created_at':  self.created_at.isoformat(),
+            'tags':        [x.id for x in self.tags],
+            'collections': [x.id for x in self.collections],
         }
 
 
@@ -80,9 +83,9 @@ class Collection(Base):
 
     def as_json(self):
         return {
-            'id':     self.id,
-            'name':   self.name,
-            'parent': self.parent,
-            #children
-            #files
+            'id':       self.id,
+            'name':     self.name,
+            'parent':   self.parent,
+            'children': [x.id for x in self.children],
+            'files':    [x.id for x in self.files],
         }
