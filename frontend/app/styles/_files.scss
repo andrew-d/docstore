@@ -4,9 +4,6 @@
 .files-main {
   @include flexbox();
   flex-direction: column;
-
-  padding: 10px;
-
 }
 
 .files-header {
