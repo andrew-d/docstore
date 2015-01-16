@@ -1,0 +1,15 @@
+@import 'mixins/flexbox';
+
+/* Single file page */
+.file-main {
+  @include flexbox();
+  flex-direction: row;
+}
+
+.file-content {
+  flex: 1;
+}
+
+.file-sidebar {
+  width: 200px;
+}
