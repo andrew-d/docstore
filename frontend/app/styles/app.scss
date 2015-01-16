@@ -1,57 +1,8 @@
-/* Flexbox mixin */
-@mixin flexbox() {
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-}
+@import 'mixins/flexbox';
 
-.full-width {
-  width: 100%;
-}
+/* Main page styles */
+@import 'main';
+@import 'files';
 
-#navbar {
-  /* This is the color of a table header, darkened a bit */
-  background-color: darken(#cbcbcb, 5%);
-
-  a {
-    /* Remove the irritating dashed outline */
-    outline: 0;
-  }
-}
-
-/* Item grid */
-.item-grid {
-  @include flexbox();
-
-  /* Allow items to wrap */
-  flex-flow: row wrap;
-  justify-content: space-around;
-
-  /* Individual items */
-  .item {
-    width: 200px;
-    height: 150px;
-    padding: 5px;
-    margin-top: 10px;
-  }
-}
-
-/* Item grid containers */
-.item-grid-content {
-  @include flexbox();
-
-  flex-direction: column;
-  align-items: center;
-
-  /* The media object (thumbnail, etc.) should take up 3/4 of the item, and the
-     caption should take up the last 1/4 */
-  .media-object {
-    flex: 0 0 75%;
-  }
-
-  .caption {
-    flex: 0 0 25%;
-  }
-}
+/* Styles for components */
+@import 'item-grid';

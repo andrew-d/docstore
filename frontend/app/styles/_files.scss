@@ -1,0 +1,37 @@
+@import 'mixins/flexbox';
+
+/* Files page */
+.files-main {
+  @include flexbox();
+  flex-direction: column;
+
+  padding: 10px;
+
+}
+
+.files-header {
+  /* Align the items within the header horizontally */
+  @include flexbox();
+  flex-direction: row;
+
+  h2 {
+    /* Take up the entire remaining width */
+    flex: 1;
+  }
+
+  .controls {
+    width: 100px;
+    align-self: center;
+    text-align: center;
+
+    a {
+      text-decoration: none;
+      color: black;
+      outline: 0;
+    }
+  }
+}
+
+.files-content {
+  flex: 1;
+}

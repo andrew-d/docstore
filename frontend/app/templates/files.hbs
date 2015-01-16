@@ -1,1 +1,16 @@
-{{outlet}}
+<div class="files-main">
+  <div class="files-header">
+    <h2>Files</h2>
+    <div class="controls">
+      {{#link-to 'files' (query-params display='grid')}}
+        <i class="fa fa-lg fa-table"></i>
+      {{/link-to}}
+      {{#link-to 'files' (query-params display='list')}}
+        <i class="fa fa-lg fa-th-list"></i>
+      {{/link-to}}
+    </div>
+  </div>
+  <div class="files-content">
+    {{outlet}}
+  </div>
+</div>
