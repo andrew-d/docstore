@@ -5,10 +5,15 @@
 #navbar {
   /* This is the color of a table header, darkened a bit */
   background-color: darken(#cbcbcb, 5%);
-
 }
 
 /* All links by default do not have an outline */
 a {
   outline: 0;
+}
+
+/* A utility class for links that should not be distinguished */
+a.regular {
+  text-decoration: none;
+  color: inherit;
 }
