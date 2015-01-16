@@ -6,8 +6,9 @@
   /* This is the color of a table header, darkened a bit */
   background-color: darken(#cbcbcb, 5%);
 
-  a {
-    /* Remove the irritating dashed outline */
-    outline: 0;
-  }
+}
+
+/* All links by default do not have an outline */
+a {
+  outline: 0;
 }
