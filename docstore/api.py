@@ -10,3 +10,6 @@ from .routes import tag
 @error(404)
 def error404(error):
     return 'Not Found'
+
+
+from .app import app
