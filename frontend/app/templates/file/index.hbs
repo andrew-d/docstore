@@ -3,6 +3,20 @@
     File {{model.id}} named: '{{model.name}}'
   </div>
   <div class='file-sidebar'>
-    Sidebar
+    <h4>Tags</h4>
+    <table class="pure-table pure-table-horizontal">
+      <thead>
+        <th>Name</th>
+        <th>Actions</th>
+      </thead>
+      <tbody>
+        {{#each tag in model.tags}}
+          <tr>
+            <td>{{tag.name}}</td>
+            <td>TKTK</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </div>
 </div>
