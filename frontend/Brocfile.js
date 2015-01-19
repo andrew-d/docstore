@@ -29,14 +29,17 @@ app.import('bower_components/fontawesome/fonts/FontAwesome.otf', {
 });
 
 // ----------------------------------------------------------------------
-// Holder.js (https://github.com/imsky/holder)
-app.import('bower_components/holderjs/holder.js');
-
-// ----------------------------------------------------------------------
 // Moment.js (https://github.com/moment/moment)
 app.import({
   development: 'bower_components/momentjs/moment.js',
   production:  'bower_components/momentjs/min/moment.min.js',
+});
+
+// ----------------------------------------------------------------------
+// Humanize Plus (https://github.com/HubSpot/humanize)
+app.import({
+  development: 'bower_components/humanize-plus/public/src/humanize.js',
+  production: 'bower_components/humanize-plus/public/dist/humanize.min.js',
 });
 
 // ----------------------------------------------------------------------
@@ -48,6 +51,19 @@ app.import({
   'lodash': [
     'default'
   ]
+});
+
+// ----------------------------------------------------------------------
+// mOxie (https://github.com/moxiecode/moxie)
+app.import({
+  development: 'bower_components/moxie/bin/js/moxie.js',
+  production: 'bower_components/moxie/bin/js/moxie.min.js',
+});
+app.import('bower_components/moxie/bin/flash/Moxie.min.swf', {
+  destDir: 'assets',
+});
+app.import('bower_components/moxie/bin/silverlight/Moxie.min.xap', {
+  destDir: 'assets',
 });
 
 

@@ -11,6 +11,8 @@ Router.map(function() {
       path: ":file_id"
     }, function() {});
   });
+
+  this.route("upload");
 });
 
 export default Router;
