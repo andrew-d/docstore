@@ -27,3 +27,18 @@ def install_db():
         use_kwargs=False
     )
     app.install(plugin)
+
+
+@app.hook('startup')
+def create_data_dir():
+    """
+    Create the data directories on startup.  Will create:
+
+        /the/data/dir/files/
+        /the/data/dir/thumbnails/
+    """
+    import os
+
+    data_path = app.config['docstore.data_path']
+    for fname in ['files', 'thumbnails']:
+        os.makedirs(os.path.join(data_path, fname))

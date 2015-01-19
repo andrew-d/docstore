@@ -1,3 +1,5 @@
+import os
+import hashlib
 import logging
 
 from bottle import abort, request, response
@@ -47,16 +49,30 @@ def files_upload(db):
     if 'data' not in request.forms or 'filename' not in request.forms:
         abort(400, 'Invalid Request')
 
-    LOG.debug("Uploading file '%s' with %d bytes of data",
+    # Hash contents
+    data_hash = hashlib.sha256(request.forms['data']).hexdigest()
+
+    LOG.debug("Uploading file '%s' with %d bytes of data and hash %s",
               request.forms['filename'],
-              len(request.forms['data'])
+              len(request.forms['data']),
+              data_hash
               )
 
     # Create a new file with this name
-    ff = File(name=request.forms.filename,
-              size=len(request.forms.data))
-    # TODO: save contents somewhere
+    ff = File(
+        name=request.forms.filename,
+        hash=data_hash,
+        size=len(request.forms.data)
+    )
     # TODO: tags or collection
+
+    # Write the file to disk if it doesn't already exist.
+    fpath = os.path.join(app.config['docstore.data_path'], 'files', data_hash)
+    if not os.path.exists(fpath):
+        with open(fpath, 'wb') as f:
+            f.write(request.forms['data'])
+
+        # TODO: generate thumbnails
 
     db.add(ff)
     db.commit()

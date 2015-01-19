@@ -46,8 +46,9 @@ class File(Base):
 
     id = Column(Integer, primary_key=True)
 
-    name = Column(String, nullable=False, unique=True)
-    size = Column(Integer, nullable=False)
+    name = Column(String, nullable=False, unique=True)  # Name as uploaded
+    hash = Column(String(32), nullable=False)           # SHA256 hash of data
+    size = Column(Integer, nullable=False)              # Size of file data
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     tags = relationship('Tag',
