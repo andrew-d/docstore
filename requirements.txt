@@ -1,7 +1,6 @@
 Pillow==2.7.0
 SQLAlchemy==0.9.8
 bjoern==1.4.1
-bottle==0.12.8
 bottle-sqlalchemy==0.4.1
 flake8==2.3.0
 mccabe==0.3

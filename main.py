@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "packages"))
+
 import bottle
 from bottle.ext import sqlalchemy
 from sqlalchemy import create_engine
