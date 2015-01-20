@@ -8,7 +8,7 @@ export default Ember.Component.extend({
   // Configuration
   multiple: false,
 
-  // Initializing m0xie can be a long operation - this ensures that we don't
+  // Initializing mOxie can be a long operation - this ensures that we don't
   // let the button be clicked unless we're ready.
   disabled: true,
 

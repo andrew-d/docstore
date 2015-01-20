@@ -1,33 +1,41 @@
-<h2>Upload Files</h2>
+<div class="row">
+  <form class="col-xs-12">
+    <h2>Upload Files</h2>
 
-<form>
-  {{#file-picker addFiles='addFiles' multiple=true}}
-    Add Files
-  {{/file-picker}}
-  <button {{action 'submit'}}>
-    Upload
-  </button>
-</form>
+    {{#file-picker addFiles='addFiles' class="btn btn-primary" multiple=true}}
+      Add Files
+    {{/file-picker}}
+    <button class="btn btn-default" {{action 'submit'}}>
+      Upload
+    </button>
+  </form>
+</div>
 
 {{#if files}}
-  <table class="pure-table pure-table-horizontal">
-    <thead>
-      <th>File Name</th>
-      <th>Size</th>
-      <th></th>
-    </thead>
-    <tbody>
-      {{#each file in files}}
-        <tr>
-          <td>{{file.name}}</td>
-          <td>{{human-file-size file.size}}</td>
-          <td>
-            <button {{action 'removeFile' file}}>
-              <i class="fa fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-      {{/each}}
-    </tbody>
-  </table>
+  <div class="row">
+    <div class="col-xs-12">
+      <table class="table table-condensed table-striped">
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Size</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each file in files}}
+            <tr>
+              <td>{{file.name}}</td>
+              <td>{{human-file-size file.size}}</td>
+              <td>
+                <button class="btn btn-danger btn-xs" {{action 'removeFile' file}}>
+                  <i class="fa fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
 {{/if}}

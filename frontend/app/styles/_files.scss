@@ -1,9 +1,10 @@
 @import 'mixins/flexbox';
 
 .controls {
-  /* By default, all icons are blurred */
   a {
+    /* By default, all icons are blurred */
     opacity: 0.4;
+    color: black;
 
     /* Except the active one */
     &.active {
