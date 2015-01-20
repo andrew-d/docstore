@@ -100,6 +100,9 @@ def files_modify_one(file_id, db):
 
     new_data = request.json['file']
     ff.name = new_data['name']
+
+    # Reset list of tags
+    new_tags = []
     for tag_id in new_data['tags']:
         if isinstance(tag_id, str):
             tag_id = int(tag_id)
@@ -108,11 +111,16 @@ def files_modify_one(file_id, db):
         if not tag:
             abort(400)
 
-        if tag not in ff.tags:
-            ff.tags.append(tag)
+        new_tags.append(tag)
+
+    ff.tags = new_tags
 
     db.add(ff)
     db.commit()
+
+    return {
+        'file': ff.as_json(),
+    }
 
 
 @app.delete('/api/files/<file_id:int>')
