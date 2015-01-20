@@ -90,7 +90,7 @@ export default Ember.Controller.extend({
       var UPLOAD_URL = '/api/files/upload';
 
       if( Ember.isEmpty(files) ) {
-        alert('You must select some files to upload');
+        self.notify.alert("No files selected to upload!");
         return;
       }
 
