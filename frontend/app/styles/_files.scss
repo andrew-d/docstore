@@ -1,38 +1,13 @@
 @import 'mixins/flexbox';
 
-/* Files page */
-.files-main {
-  @include flexbox();
-  flex-direction: column;
-}
+.controls {
+  /* By default, all icons are blurred */
+  a {
+    opacity: 0.4;
 
-.files-header {
-  /* Align the items within the header horizontally */
-  @include flexbox();
-  flex-direction: row;
-
-  h2 {
-    /* Take up the entire remaining width */
-    flex: 1;
-  }
-
-  .controls {
-    width: 100px;
-    align-self: center;
-    text-align: center;
-
-    /* By default, all icons are blurred */
-    a {
-      opacity: 0.4;
-
-      /* Except the active one */
-      &.active {
-        opacity: 1;
-      }
+    /* Except the active one */
+    &.active {
+      opacity: 1;
     }
   }
-}
-
-.files-content {
-  flex: 1;
 }

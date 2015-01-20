@@ -1,22 +1,23 @@
-<div class='file-main'>
-  <div class='file-content'>
+<div class="row">
+  <div class="col-md-9">
     File {{model.id}} named: '{{model.name}}'
   </div>
-  <div class='file-sidebar'>
+  <div class="col-md-3">
     <h4>Tags</h4>
-    <table class="pure-table pure-table-horizontal">
-      <thead>
-        <th>Name</th>
-        <th>Actions</th>
-      </thead>
-      <tbody>
-        {{#each tag in model.tags}}
-          <tr>
-            <td>{{tag.name}}</td>
-            <td>TKTK</td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
+    <ul>
+      {{#each tag in model.tags}}
+        <li>
+          {{tag.name}} (<i class="fa fa-trash" {{action 'removeTag' tag}}></i>)
+        </li>
+      {{else}}
+        <li><i>No tags</i></li>
+      {{/each}}
+    </ul>
+    <form {{action 'addTag' on="submit"}}>
+      {{input type="text"
+              class="form-control"
+              value=newTag
+              placeholder="New Tag"}}
+    </form>
   </div>
 </div>

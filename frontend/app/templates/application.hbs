@@ -1,18 +1,32 @@
-<div id="navbar" class="pure-menu pure-menu-open pure-menu-horizontal">
-  {{#link-to 'index' class="pure-menu-heading"}}docstore{{/link-to}}
-  <ul>
-    {{#link-to 'index' tagName='li' activeClass="pure-menu-selected"}}
-      {{#link-to 'index'}}Home{{/link-to}}
-    {{/link-to}}
-    {{#link-to 'files' tagName='li' activeClass="pure-menu-selected"}}
-      {{#link-to 'files'}}Files{{/link-to}}
-    {{/link-to}}
-    {{#link-to 'upload' tagName='li' activeClass="pure-menu-selected"}}
-      {{#link-to 'upload'}}Upload{{/link-to}}
-    {{/link-to}}
-  </ul>
-</div>
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#TKTK-collapse-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      {{#link-to 'index' class="navbar-brand"}}docstore{{/link-to}}
+    </div>
 
-<div id="container">
+    <div class="collapse navbar-collapse" id="TKTK-collapse-navbar">
+      <ul class="nav navbar-nav">
+        {{#link-to 'index' tagName='li'}}
+          {{#link-to 'index'}}Home{{/link-to}}
+        {{/link-to}}
+        {{#link-to 'files' tagName='li'}}
+          {{#link-to 'files'}}Files{{/link-to}}
+        {{/link-to}}
+        {{#link-to 'upload' tagName='li'}}
+          {{#link-to 'upload'}}Upload{{/link-to}}
+        {{/link-to}}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid">
   {{outlet}}
 </div>

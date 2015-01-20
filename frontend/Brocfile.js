@@ -7,13 +7,6 @@ var EmberApp = require('ember-cli/lib/broccoli/ember-app'),
 var app = new EmberApp();
 
 // ----------------------------------------------------------------------
-// Pure (https://github.com/yahoo/pure/)
-app.import({
-  development: 'bower_components/pure/pure.css',
-  production:  'bower_components/pure/pure.min.css',
-});
-
-// ----------------------------------------------------------------------
 // Font Awesome (https://fortawesome.github.io/Font-Awesome/)
 app.import({
   development: 'bower_components/fontawesome/css/font-awesome.css',

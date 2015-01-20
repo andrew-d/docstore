@@ -11,6 +11,21 @@ LOG = logging.getLogger(__name__)
 
 @app.get('/api/tags')
 def tags_get_many(db):
+    # If we have a 'name' parameter, we need to lookup the individual tag, or
+    # return a 404 error.
+    if request.query.name:
+        tag = db.query(Tag).filter_by(name=request.query.name).first()
+        if not tag:
+            abort(404, '')
+
+        # Return just the single tag
+        return {
+            'tags': [tag.as_json()],
+            'meta': {
+                'total': 1,
+            },
+        }
+
     # Pagination
     try:
         offset = int(request.query.offset or 0)
@@ -37,7 +52,18 @@ def tags_get_many(db):
 
 @app.post('/api/tags')
 def tags_post(db):
-    abort(501, 'Not Implemented')
+    if (not request.json or
+            'tag' not in request.json or
+            'name' not in request.json['tag']):
+        abort(400, 'No name given')
+
+    tag = Tag(name=request.json['tag']['name'])
+    db.add(tag)
+    db.commit()
+
+    return {
+        'tag': tag.as_json(),
+    }
 
 
 @app.get('/api/tags/<tag_id:int>')

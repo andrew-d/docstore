@@ -5,7 +5,7 @@ import logging
 from bottle import abort, request, response
 
 from ..app import app
-from ..models import File
+from ..models import File, Tag
 
 
 LOG = logging.getLogger(__name__)
@@ -82,18 +82,44 @@ def files_upload(db):
 def files_get_one(file_id, db):
     ff = db.query(File).filter_by(id=file_id).first()
     if not ff:
-        abort(404, '')
+        abort(404)
 
     return {
         'file': ff.as_json(),
     }
 
 
+@app.put('/api/files/<file_id:int>')
+def files_modify_one(file_id, db):
+    if not request.json or 'file' not in request.json:
+        abort(400)
+
+    ff = db.query(File).filter_by(id=file_id).first()
+    if not ff:
+        abort(404)
+
+    new_data = request.json['file']
+    ff.name = new_data['name']
+    for tag_id in new_data['tags']:
+        if isinstance(tag_id, str):
+            tag_id = int(tag_id)
+
+        tag = db.query(Tag).filter_by(id=tag_id).first()
+        if not tag:
+            abort(400)
+
+        if tag not in ff.tags:
+            ff.tags.append(tag)
+
+    db.add(ff)
+    db.commit()
+
+
 @app.delete('/api/files/<file_id:int>')
 def files_delete_one(file_id, db):
     ff = db.query(File).filter_by(id=file_id).first()
     if not ff:
-        abort(404, '')
+        abort(404)
 
     ff.delete_instance()
     response.status = 204
@@ -103,7 +129,7 @@ def files_delete_one(file_id, db):
 def files_get_content(file_id, db):
     ff = db.query(File).filter_by(id=file_id).first()
     if not ff:
-        abort(404, '')
+        abort(404)
 
     # TODO: serve the contents of the file
     # TODO: be sure to try out the WSGI sendfile, if it exists

@@ -1,3 +1,6 @@
+import os
+import errno
+
 import bottle
 
 app = bottle.Bottle()
@@ -41,4 +44,11 @@ def create_data_dir():
 
     data_path = app.config['docstore.data_path']
     for fname in ['files', 'thumbnails']:
-        os.makedirs(os.path.join(data_path, fname))
+        path = os.path.join(data_path, fname)
+        try:
+            os.makedirs(path)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise

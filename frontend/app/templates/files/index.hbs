@@ -1,21 +1,21 @@
-<div class="files-main">
-  <div class="files-header">
+<div class="row vertical-align">
+  <div class="col-sm-11">
     <h2>Files</h2>
-    <div class="controls">
-      {{#link-to 'files' (query-params display='grid') class="regular"}}
-        <i class="fa fa-lg fa-table"></i>
-      {{/link-to}}
-      {{#link-to 'files' (query-params display='list') class="regular"}}
-        <i class="fa fa-lg fa-th-list"></i>
-      {{/link-to}}
-    </div>
   </div>
-  <div class="files-content">
-    {{#if isGrid}}
-      {{items-grid items=model}}
-    {{/if}}
-    {{#if isList}}
-      {{items-list items=model}}
-    {{/if}}
+  <div class="col-sm-1 center-block controls">
+    {{#link-to 'files' (query-params display='grid') class="regular"}}
+      <i class="fa fa-lg fa-table"></i>
+    {{/link-to}}
+    {{#link-to 'files' (query-params display='list') class="regular"}}
+      <i class="fa fa-lg fa-th-list"></i>
+    {{/link-to}}
   </div>
+</div>
+<div class="row files-content">
+  {{#if isGrid}}
+    {{items-grid items=model}}
+  {{/if}}
+  {{#if isList}}
+    {{items-list items=model}}
+  {{/if}}
 </div>

@@ -1,23 +1,5 @@
-.full-width {
-  width: 100%;
-}
-
-#navbar {
-  /* This is the color of a table header, darkened a bit */
-  background-color: darken(#cbcbcb, 5%);
-}
-
-#container {
-  padding: 10px;
-}
-
-/* All links by default do not have an outline */
-a {
-  outline: 0;
-}
-
-/* A utility class for links that should not be distinguished */
-a.regular {
-  text-decoration: none;
-  color: inherit;
+/* Note: this only works in IE9+, but it's just a "nice-to-have" */
+.vertical-align {
+  display: flex;
+  align-items: center;
 }
