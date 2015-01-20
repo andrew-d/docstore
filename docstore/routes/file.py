@@ -5,7 +5,7 @@ import logging
 from bottle import abort, request, response
 
 from ..app import app
-from ..models import File, Tag
+from ..models import File, Tag, FileType
 
 
 LOG = logging.getLogger(__name__)
@@ -62,9 +62,10 @@ def files_upload(db):
     ff = File(
         name=request.forms.filename,
         hash=data_hash,
-        size=len(request.forms.data)
+        size=len(request.forms.data),
+        type=FileType.binary,                       # FIXME
     )
-    # TODO: tags or collection
+    # TODO: set/add tags or collection?
 
     # Write the file to disk if it doesn't already exist.
     fpath = os.path.join(app.config['docstore.data_path'], 'files', data_hash)
@@ -72,10 +73,15 @@ def files_upload(db):
         with open(fpath, 'wb') as f:
             f.write(request.forms['data'])
 
-        # TODO: generate thumbnails
+        # TODO: generate thumbnails?
 
     db.add(ff)
     db.commit()
+
+    # Return the location of the new file in the Location header
+    response.set_header('Location', '/api/files/%d' % (ff.id,))
+
+    # TODO: what to return here?
 
 
 @app.get('/api/files/<file_id:int>')

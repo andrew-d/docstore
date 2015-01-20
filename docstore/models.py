@@ -1,15 +1,20 @@
+import json
 from datetime import datetime
 
 from sqlalchemy import (
     Column,
     DateTime,
+    Enum,
     ForeignKey,
     Integer,
     String,
     Table,
+    Text,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.hybrid import hybrid_property
+from decl_enum import DeclEnum
 
 
 Base = declarative_base()
@@ -41,6 +46,11 @@ class Tag(Base):
         }
 
 
+class FileType(DeclEnum):
+    image = "I", "image"
+    binary = "B", "binary"
+
+
 class File(Base):
     __tablename__ = "files"
 
@@ -50,6 +60,23 @@ class File(Base):
     hash = Column(String(32), nullable=False)           # SHA256 hash of data
     size = Column(Integer, nullable=False)              # Size of file data
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    # Type of file and properties that are dependent on that type.
+    type = Column(FileType.db_type(), nullable=False)
+    _properties = Column("properties", Text, nullable=True)
+
+    @hybrid_property
+    def properties(self):
+        try:
+            val = json.loads(self._properties)
+        except (ValueError, TypeError):
+            val = {}
+
+        return val
+
+    @properties.setter
+    def properties(self, val):
+        self._properties = json.dumps(val)
 
     tags = relationship('Tag',
                         secondary=file_tags,
@@ -64,6 +91,8 @@ class File(Base):
             'name':        self.name,
             'size':        self.size,
             'created_at':  self.created_at.isoformat(),
+            'type':        self.type,
+            'properties':  self.properties,
             'tags':        [x.id for x in self.tags],
             'collections': [x.id for x in self.collections],
         }

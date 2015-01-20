@@ -1,9 +1,16 @@
 import os
+import json
 import errno
 
 import bottle
 
+from .util import MyJSONEncoder
+
+
 app = bottle.Bottle()
+app.install(bottle.JSONPlugin(
+    json_dumps=lambda s: json.dumps(s, cls=MyJSONEncoder)
+))
 
 
 @app.hook('startup')
