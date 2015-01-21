@@ -104,9 +104,12 @@ export default Ember.Controller.extend({
       var promises = files.map((file) => {
         return loadFile(file)
           .then((data) => {
-            // TODO: tags
-            // TODO: collection
-            return uploadFile(UPLOAD_URL, file, data);
+            var tagsToApply = this.get('tags').map(t => t.get('name'));
+
+            return uploadFile(UPLOAD_URL, file, data, {
+              tags:       tagsToApply,
+              collection: this.get('collection'),
+            });
           })
           .then(() => {
             this.incrementProperty('completed');
@@ -124,6 +127,7 @@ export default Ember.Controller.extend({
 
         this.set('uploading', false);
         this.set('files', []);
+        this.set('collection', null);
       });
     },
 
