@@ -86,45 +86,44 @@ export default Ember.Controller.extend({
     // Submit all files to the server, and then clear the list of
     // files and show any errors.
     submit: function() {
-      var self = this,
-          errors = [],
-          files = self.get('files');
+      var errors = [],
+          files = this.get('files');
 
       // TODO: put this somewhere else
       var UPLOAD_URL = '/api/files/upload';
 
       if( Ember.isEmpty(files) ) {
-        self.notify.alert("No files selected to upload!");
+        this.notify.alert("No files selected to upload!");
         return;
       }
 
-      self.set('uploading', true);
+      this.set('uploading', true);
 
       // Map all files to a promise that is resolved or rejected when
       // that file is uploaded.
-      var promises = files.map(function(file) {
+      var promises = files.map((file) => {
         return loadFile(file)
-          .then(function(data) {
+          .then((data) => {
             // TODO: tags
             // TODO: collection
             return uploadFile(UPLOAD_URL, file, data);
           })
-          .then(function success() {
-            self.incrementProperty('completed');
-          }, function error(error) {
+          .then(() => {
+            this.incrementProperty('completed');
+          }, (error) => {
             errors.push({ file: file.name, reason: error });
           });
       });
 
       // When we've uploaded (or failed) all files, then we set the appropriate
       // variables on our controller.
-      Ember.RSVP.all(promises).then(function() {
+      Ember.RSVP.all(promises).then(() => {
         if( errors.length ) {
-          self.set('errors', errors);
+          this.set('errors', errors);
         }
 
-        self.set('uploading', false);
-        self.set('files', []);
+        this.set('uploading', false);
+        this.set('files', []);
       });
     },
 
@@ -137,11 +136,9 @@ export default Ember.Controller.extend({
     // Action that is sent when an new tag is created in the select box.
     newTag: function(tag) {
       // TODO: dedupe code from here and controller file/index.js
-      var self = this;
-
-      self.store
+      this.store
         .find('tag', {name: tag})
-        .then(function(tags) {
+        .then((tags) => {
           // The returned value should be an array with exactly 1 element.
           if( tags.get('length') !== 1 ) {
             throw new Error("successful tag lookup should return 1 object");
@@ -154,15 +151,15 @@ export default Ember.Controller.extend({
           }
 
           // No tag by this name - create it.
-          var record = self.store.createRecord('tag', {
+          var record = this.store.createRecord('tag', {
             name: tag,
           });
           return record.save();
         })
-      .then(function(tagObj) {
-        self.set('model.tags', self.store.findAll('tag'));
-        self.get('tags').pushObject(tagObj);
-        self.notify.info("Created new tag: " + tagObj.get('name'));
+      .then((tagObj) => {
+        this.set('model.tags', this.store.findAll('tag'));
+        this.get('tags').pushObject(tagObj);
+        this.notify.info("Created new tag: " + tagObj.get('name'));
       });
     }
   },
