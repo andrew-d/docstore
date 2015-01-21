@@ -13,6 +13,12 @@ Router.map(function() {
   });
 
   this.route("upload");
+
+  this.resource("tags", function() {
+    this.resource("tag", {
+      path: ":tag_id"
+    }, function() {});
+  });
 });
 
 export default Router;
