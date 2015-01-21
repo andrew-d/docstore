@@ -56,6 +56,10 @@ export default Ember.Controller.extend({
   // Files from the file picker.
   files: [],
 
+  // Bindings for other things
+  tags: [],
+  collection: null,
+
   // Values set when we upload
   uploading: false,
   completed: 0,
@@ -129,5 +133,37 @@ export default Ember.Controller.extend({
       this.set('files', []);
       this.set('completed', 0);
     },
+
+    // Action that is sent when an new tag is created in the select box.
+    newTag: function(tag) {
+      // TODO: dedupe code from here and controller file/index.js
+      var self = this;
+
+      self.store
+        .find('tag', {name: tag})
+        .then(function(tags) {
+          // The returned value should be an array with exactly 1 element.
+          if( tags.get('length') !== 1 ) {
+            throw new Error("successful tag lookup should return 1 object");
+          }
+
+          return tags.objectAt(0);
+        }, function(reason) {
+          if( reason.status !== 404 ) {
+            throw reason;
+          }
+
+          // No tag by this name - create it.
+          var record = self.store.createRecord('tag', {
+            name: tag,
+          });
+          return record.save();
+        })
+      .then(function(tagObj) {
+        self.set('model.tags', self.store.findAll('tag'));
+        self.get('tags').pushObject(tagObj);
+        self.notify.info("Created new tag: " + tagObj.get('name'));
+      });
+    }
   },
 });

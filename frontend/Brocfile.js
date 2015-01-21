@@ -4,7 +4,11 @@ var EmberApp = require('ember-cli/lib/broccoli/ember-app'),
     es3 = require('broccoli-es3-safe-recast'),
     isProduction = ( process.env.EMBER_ENV || 'development' ) === 'production';
 
-var app = new EmberApp();
+var app = new EmberApp({
+  'ember-cli-selectize': {
+    'theme': 'bootstrap3'
+  },
+});
 
 // ----------------------------------------------------------------------
 // Font Awesome (https://fortawesome.github.io/Font-Awesome/)
