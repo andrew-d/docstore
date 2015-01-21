@@ -13,11 +13,15 @@
 </div>
 <div class="row">
   <div class="col-xs-12">
-    {{#if isGrid}}
-      {{items-grid items=model}}
-    {{/if}}
-    {{#if isList}}
-      {{items-list items=model}}
+    {{#if model}}
+      {{#if isGrid}}
+        {{items-grid items=model}}
+      {{/if}}
+      {{#if isList}}
+        {{items-list items=model}}
+      {{/if}}
+    {{else}}
+      <i>No files</i>
     {{/if}}
   </div>
 </div>

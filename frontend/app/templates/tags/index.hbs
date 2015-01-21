@@ -2,21 +2,25 @@
 
 <div class="row">
   <div class="col-xs-12">
-    <table class="table table-condensed">
-      <thead>
-        <tr>
-          <th>Name</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each tag in model}}
-          {{#link-to 'tag' tag.id tagName="tr"}}
-            <td>
-              {{tag.name}}
-            </td>
-          {{/link-to}}
-        {{/each}}
-      </tbody>
-    </table>
+    {{#if model}}
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each tag in model}}
+            {{#link-to 'tag' tag.id tagName="tr"}}
+              <td>
+                {{tag.name}}
+              </td>
+            {{/link-to}}
+          {{/each}}
+        </tbody>
+      </table>
+    {{else}}
+      <i>No tags</i>
+    {{/if}}
   </div>
 </div>
