@@ -11,6 +11,10 @@ var app = new EmberApp({
 });
 
 // ----------------------------------------------------------------------
+// Bootstrap collapse component
+app.import('bower_components/bootstrap-sass-official/assets/javascripts/bootstrap/collapse.js');
+
+// ----------------------------------------------------------------------
 // Font Awesome (https://fortawesome.github.io/Font-Awesome/)
 app.import({
   development: 'bower_components/fontawesome/css/font-awesome.css',
