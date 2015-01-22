@@ -29,6 +29,9 @@ module.exports = function(environment) {
   };
 
   if (environment === 'development') {
+    // To prevent irritating warnings
+    ENV.contentSecurityPolicy['img-src'] = "'self' placehold.it data:";
+
     // ENV.APP.LOG_RESOLVER = true;
     // ENV.APP.LOG_ACTIVE_GENERATION = true;
     // ENV.APP.LOG_TRANSITIONS = true;
