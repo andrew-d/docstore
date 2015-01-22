@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import Paginated from '../../mixins/paginated';
 
-export default Ember.Controller.extend(Paginated, {
+export default Ember.ArrayController.extend(Paginated, {
   queryParams: ['display'],
   display: 'grid',
 
