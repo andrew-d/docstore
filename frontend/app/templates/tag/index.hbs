@@ -1,5 +1,28 @@
+<div class="row vertical-align">
+  <div class="col-xs-12">
+    <h2>Tag '{{model.name}}'</h2>
+  </div>
+  <div class="col-sm-1 center-block controls">
+    {{#link-to 'tag' model (query-params display='grid') class="regular"}}
+      <i class="fa fa-lg fa-table"></i>
+    {{/link-to}}
+    {{#link-to 'tag' model (query-params display='list') class="regular"}}
+      <i class="fa fa-lg fa-th-list"></i>
+    {{/link-to}}
+  </div>
+</div>
+
 <div class="row">
   <div class="col-md-9">
-    Tag {{model.name}}
+    {{#if model.files}}
+      {{#if isGrid}}
+        {{items-grid items=model.files}}
+      {{/if}}
+      {{#if isList}}
+        {{items-list items=model.files}}
+      {{/if}}
+    {{else}}
+      <i>No files with this tag</i>
+    {{/if}}
   </div>
 </div>
