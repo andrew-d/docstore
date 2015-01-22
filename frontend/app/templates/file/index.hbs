@@ -7,7 +7,10 @@
     <ul>
       {{#each tag in model.tags}}
         <li>
-          {{tag.name}} (<i class="fa fa-trash" {{action 'removeTag' tag}}></i>)
+          {{#link-to 'tag' tag.id}}
+            {{tag.name}}
+          {{/link-to}}
+          (<i class="fa fa-trash" {{action 'removeTag' tag}}></i>)
         </li>
       {{else}}
         <li><i>No tags</i></li>

@@ -149,7 +149,7 @@ export default Ember.Controller.extend({
           }
 
           return tags.objectAt(0);
-        }, function(reason) {
+        }, (reason) => {
           if( reason.status !== 404 ) {
             throw reason;
           }
