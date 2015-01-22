@@ -3,7 +3,7 @@
     <tr>
       <th>ID</th>
       <th>Created At</th>
-      <th># of Files</th>
+      <th>Size</th>
       <th>Tags</th>
     </tr>
   </thead>
@@ -12,7 +12,7 @@
       {{#link-to 'file' item.id tagName="tr"}}
         <td>{{item.id}}</td>
         <td>{{moment-calendar item.created_at}}</td>
-        <td>{{item.files.length}}</td>
+        <td>{{human-file-size item.size}}</td>
         <td>
           {{! TODO: This doesn't properly comma-ify the last item }}
           {{#each tag in item.tags ~}}
