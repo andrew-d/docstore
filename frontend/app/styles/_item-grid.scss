@@ -4,14 +4,18 @@
 
   /* Allow items to wrap */
   flex-flow: row wrap;
-  justify-content: space-around;
+  justify-content: space-between;
 
   /* Individual items */
   .item {
     width: 200px;
     height: 150px;
-    padding: 5px;
+
     margin-top: 10px;
+
+    /* Add spaces between the individual items */
+    margin-left: 20px;
+    margin-right: 20px;
   }
 }
 
