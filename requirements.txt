@@ -1,9 +1,0 @@
-Pillow==2.7.0
-SQLAlchemy==0.9.8
-bjoern==1.4.1
-bottle-sqlalchemy==0.4.1
-flake8==2.3.0
-mccabe==0.3
-numpy==1.9.1
-pep8==1.5.7
-pyflakes==0.8.1
