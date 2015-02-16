@@ -85,6 +85,11 @@ func main() {
 	api.Get("/api/documents/:document_id", documentController.Action(documentController.GetOne))
 	api.Post("/api/documents", documentController.Action(documentController.Create))
 
+	fileController := controllers.FileController{AppController: appController}
+	api.Get("/api/documents/files", fileController.Action(fileController.GetAll))
+	api.Get("/api/documents/:document_id/files/:file_id", fileController.Action(fileController.GetOne))
+	// TODO: how to create a file?
+
 	m.Handle("/api/*", api)
 
 	// Set up graceful listener

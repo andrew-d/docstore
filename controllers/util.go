@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/zenazn/goji/web"
 )
 
@@ -32,7 +33,7 @@ func (c *AppController) JSON(w http.ResponseWriter, status int, val interface{})
 }
 
 // Helper function to parse an integer parameter
-func (c *AppController) ParseIntParam(ctx web.C, name string) (int64, error) {
+func (c *AppController) parseIntParam(ctx web.C, name string) (int64, error) {
 	val, found := ctx.URLParams[name]
 	if !found {
 		panic(fmt.Sprintf("no such parameter: '%s'", name))
@@ -58,4 +59,33 @@ func (c *AppController) iQuery(s string) string {
 	}
 
 	return s
+}
+
+// Helper function to run some code within a transaction, properly committing
+// or rolling back depending on the return value.
+func (c *AppController) inTransaction(cb func(tx *sqlx.Tx) error) error {
+	finished := false
+	tx, err := c.DB.Beginx()
+	if err != nil {
+		return VError{err, "error creating transaction", http.StatusInternalServerError}
+	}
+
+	defer func() {
+		if !finished {
+			tx.Rollback()
+		}
+	}()
+
+	err = cb(tx)
+	if err != nil {
+		return err
+	}
+
+	finished = true
+	err = tx.Commit()
+	if err != nil {
+		return VError{err, "error committing transaction", http.StatusInternalServerError}
+	}
+
+	return nil
 }

@@ -26,7 +26,7 @@ func (c *TagController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Request
 }
 
 func (c *TagController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Request) error {
-	id, err := c.ParseIntParam(ctx, "tag_id")
+	id, err := c.parseIntParam(ctx, "tag_id")
 	if err != nil {
 		return err
 	}
