@@ -5,8 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/jinzhu/gorm"
-	"github.com/mccoyst/validate"
+	"github.com/jmoiron/sqlx"
 	flag "github.com/ogier/pflag"
 	renderpkg "github.com/unrolled/render"
 	"github.com/zenazn/goji/graceful"
@@ -21,7 +20,6 @@ var (
 
 	log    = logrus.New()
 	render *renderpkg.Render
-	v      validate.V
 )
 
 func init() {
@@ -30,56 +28,18 @@ func init() {
 	render = renderpkg.New(renderpkg.Options{
 		IndentJSON: true,
 	})
-
-	v = make(validate.V)
-	v["nonzero"] = func(i interface{}) error {
-		var ok bool
-
-		switch v := i.(type) {
-		case int:
-			ok = v != 0
-		case uint:
-			ok = v != 0
-		case string:
-			ok = len(v) > 0
-		}
-
-		if !ok {
-			return fmt.Errorf("should be nonzero")
-		}
-
-		return nil
-	}
-	v["nonempty"] = func(i interface{}) error {
-		var ok bool
-
-		switch v := i.(type) {
-		case []int64:
-			ok = len(v) > 0
-		}
-
-		if !ok {
-			return fmt.Errorf("should be nonempty")
-		}
-
-		return nil
-	}
-	v["notnil"] = func(i interface{}) error {
-		if i == nil {
-			return fmt.Errorf("should not be nil")
-		}
-		return nil
-	}
 }
 
 func main() {
-	db, err := gorm.Open("sqlite3", ":memory:")
+	db, err := sqlx.Connect("sqlite3", ":memory:")
 	if err != nil {
 		log.WithField("err", err).Fatal("Could not open db")
 	}
 
-	// Database migration
-	db.AutoMigrate(&Document{}, &Tag{}, &File{})
+	// Set up schema
+	for _, stmt := range databaseSchema {
+		db.MustExec(stmt)
+	}
 
 	m := web.New()
 	m.Use(middleware.EnvInit)
