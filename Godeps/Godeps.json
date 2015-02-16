@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/andrew-d/docstore2",
+	"ImportPath": "github.com/andrew-d/docstore",
 	"GoVersion": "go1.4.1",
 	"Packages": [
 		"./..."
@@ -11,16 +11,17 @@
 			"Rev": "89efc1fea9b8b47f6f6ce72279a7ed9496b4cdb3"
 		},
 		{
-			"ImportPath": "github.com/gorilla/schema",
-			"Rev": "c8422571edf3131506bab7df27e18980fe2598d5"
+			"ImportPath": "github.com/jmoiron/sqlx",
+			"Comment": "sqlx-v1.0-67-g69738bd",
+			"Rev": "69738bd209812c5a381786011aff17944a384554"
 		},
 		{
-			"ImportPath": "github.com/jinzhu/gorm",
-			"Rev": "6f2e92e1369ffa2d211c45debb7d7e2ed59a7507"
+			"ImportPath": "github.com/lann/builder",
+			"Rev": "c603884a2c1fcf331c71940f3227a8111d29f3ba"
 		},
 		{
-			"ImportPath": "github.com/lib/pq/hstore",
-			"Rev": "dc911180b321e9b7e08aa94f20939ef0109b9b24"
+			"ImportPath": "github.com/lann/squirrel",
+			"Rev": "599acb00ac82fe3ab293e2dea629f5c26b660ff5"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
@@ -31,12 +32,12 @@
 			"Rev": "a3bd9d27f421712ab03f06da1376213a6c662fa1"
 		},
 		{
-			"ImportPath": "github.com/ogier/pflag",
-			"Rev": "e4f7d00f344b0954fa3791a8527d10ba7334eceb"
+			"ImportPath": "github.com/mndrix/ps",
+			"Rev": "33ddf69629c1bcea76b04f4a4e9e00e4cce82eb6"
 		},
 		{
-			"ImportPath": "github.com/unrolled/render",
-			"Rev": "bdfac4a8df10cc9dc03ee14ba2f655137fd70378"
+			"ImportPath": "github.com/ogier/pflag",
+			"Rev": "e4f7d00f344b0954fa3791a8527d10ba7334eceb"
 		},
 		{
 			"ImportPath": "github.com/zenazn/goji/graceful",

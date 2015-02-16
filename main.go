@@ -2,35 +2,32 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lann/squirrel"
 	flag "github.com/ogier/pflag"
-	renderpkg "github.com/unrolled/render"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
+
+	"github.com/andrew-d/docstore/controllers"
+	"github.com/andrew-d/docstore/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
-	flagPort uint16
+	flagPort  uint16
+	flagDebug bool
 
-	log    = logrus.New()
-	render *renderpkg.Render
-	sq     squirrel.StatementBuilderType
+	log = logrus.New()
 )
 
 func init() {
 	flag.Uint16VarP(&flagPort, "port", "p", 8080, "port to listen on")
-
-	render = renderpkg.New(renderpkg.Options{
-		IndentJSON: true,
-	})
+	flag.BoolVarP(&flagDebug, "debug", "d", false, "run in debug mode")
 }
 
 func main() {
@@ -40,6 +37,7 @@ func main() {
 	}
 
 	// TODO: properly configured
+	var sq squirrel.StatementBuilderType
 	if false {
 		sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 	} else {
@@ -48,13 +46,20 @@ func main() {
 
 	// Set up schema
 	tx := db.MustBegin()
-	for i, stmt := range databaseSchema {
-		log.WithField("index", i).Debug("Executing scheme statement")
+	for i, stmt := range models.Schema() {
+		log.WithField("index", i).Debug("Executing schema statement")
 		tx.MustExec(strings.TrimSpace(stmt))
 	}
 	err = tx.Commit()
 	if err != nil {
 		log.WithField("err", err).Fatal("Error committing schema transaction")
+	}
+
+	// Create global controller
+	appController := controllers.AppController{
+		DB:      db,
+		Builder: sq,
+		Debug:   flagDebug,
 	}
 
 	m := web.New()
@@ -68,21 +73,17 @@ func main() {
 	api := web.New()
 	api.Use(jsonMiddleware)
 	api.Use(corsMiddleware)
-	api.Use(func(c *web.C, h http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			c.Env["db"] = db
-			h.ServeHTTP(w, r)
-		}
-		return http.HandlerFunc(fn)
-	})
 
-	api.Get("/api/tags", routeTagsGetAll)
-	api.Post("/api/tags", routeTagsCreate)
-	api.Get("/api/tags/:tag_id", routeTagsGetOne)
+	// Set up controllers/routes
+	tagController := controllers.TagController{AppController: appController}
+	api.Get("/api/tags", tagController.Action(tagController.GetAll))
+	api.Get("/api/tags/:tag_id", tagController.Action(tagController.GetOne))
+	api.Post("/api/tags", tagController.Action(tagController.Create))
 
-	api.Get("/api/documents", routeDocumentsGetAll)
-	api.Post("/api/documents", routeDocumentsCreate)
-	api.Get("/api/documents/:document_id", routeDocumentsGetOne)
+	documentController := controllers.DocumentController{AppController: appController}
+	api.Get("/api/documents", documentController.Action(documentController.GetAll))
+	api.Get("/api/documents/:document_id", documentController.Action(documentController.GetOne))
+	api.Post("/api/documents", documentController.Action(documentController.Create))
 
 	m.Handle("/api/*", api)
 
