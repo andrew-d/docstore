@@ -32,7 +32,11 @@ func (c *TagController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Request
 	}
 
 	var t models.Tag
-	sql, args, _ := c.Builder.Select("*").From("tags").Where(squirrel.Eq{"id": id}).ToSql()
+	sql, args, _ := (c.Builder.
+		Select("*").
+		From("tags").
+		Where(squirrel.Eq{"id": id}).
+		ToSql())
 	err = c.DB.Get(&t, sql, args...)
 	if t.Id == 0 {
 		return VError{err, "tag not found", 404}
@@ -56,10 +60,12 @@ func (c *TagController) Create(ctx web.C, w http.ResponseWriter, r *http.Request
 		return VError{errs, "invalid input", http.StatusBadRequest}
 	}
 
-	ret, err := c.DB.NamedExec(c.iQuery(`INSERT INTO tags (name) VALUES (:name)`),
-		map[string]interface{}{
-			"name": createParams.Name,
-		})
+	sql, args, _ := (c.Builder.
+		Insert("tags").
+		Columns("name").
+		Values(createParams.Name).
+		ToSql())
+	ret, err := c.DB.Exec(c.iQuery(sql), args...)
 	if err != nil {
 		return VError{err, "error saving tag", http.StatusInternalServerError}
 	}
