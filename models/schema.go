@@ -26,9 +26,12 @@ CREATE TABLE IF NOT EXISTS tags (
 )`,
 	`
 CREATE TABLE IF NOT EXISTS files (
-	id   INTEGER PRIMARY KEY,
-	name VARCHAR(255) NOT NULL,
-	hash VARCHAR(32) NOT NULL UNIQUE
+	id          INTEGER PRIMARY KEY,
+	name        VARCHAR(255) NOT NULL,
+	hash        VARCHAR(32) NOT NULL UNIQUE,
+	document_id INTEGER NOT NULL,
+
+	FOREIGN KEY (document_id) REFERENCES documents(id)
 )`,
 	`
 CREATE TABLE IF NOT EXISTS document_tags (
