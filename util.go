@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/zenazn/goji/web"
 )
@@ -41,4 +42,13 @@ func parseUintParam(c web.C, name string) (uint64, error) {
 	}
 
 	return num, nil
+}
+
+func iQuery(s string) string {
+	// TODO:
+	if false {
+		s = strings.TrimRight(s, "; ") + " RETURNING id"
+	}
+
+	return s
 }

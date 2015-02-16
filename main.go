@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
+	"github.com/lann/squirrel"
 	flag "github.com/ogier/pflag"
 	renderpkg "github.com/unrolled/render"
 	"github.com/zenazn/goji/graceful"
@@ -20,6 +22,7 @@ var (
 
 	log    = logrus.New()
 	render *renderpkg.Render
+	sq     squirrel.StatementBuilderType
 )
 
 func init() {
@@ -36,9 +39,22 @@ func main() {
 		log.WithField("err", err).Fatal("Could not open db")
 	}
 
+	// TODO: properly configured
+	if false {
+		sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	} else {
+		sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)
+	}
+
 	// Set up schema
-	for _, stmt := range databaseSchema {
-		db.MustExec(stmt)
+	tx := db.MustBegin()
+	for i, stmt := range databaseSchema {
+		log.WithField("index", i).Debug("Executing scheme statement")
+		tx.MustExec(strings.TrimSpace(stmt))
+	}
+	err = tx.Commit()
+	if err != nil {
+		log.WithField("err", err).Fatal("Error committing schema transaction")
 	}
 
 	m := web.New()

@@ -5,39 +5,50 @@ import (
 	"net/http"
 
 	"github.com/gorilla/schema"
-	"github.com/jinzhu/gorm"
+	"github.com/jmoiron/sqlx"
+	"github.com/lann/squirrel"
 	"github.com/zenazn/goji/web"
 )
 
 var _ = schema.NewDecoder
 
 type Tag struct {
-	Id        int64      `json:"id"`
-	Name      string     `json:"name" validate:"nonzero" sql:"not null;unique"`
-	Documents []Document `json:"documents,omitempty" gorm:"many2many:document_tags"`
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
 }
 
 func routeTagsGetAll(c web.C, w http.ResponseWriter, r *http.Request) {
-	db := c.Env["db"].(gorm.DB)
+	db := c.Env["db"].(*sqlx.DB)
 
 	allTags := []Tag{}
-	db.Find(&allTags)
+	err := db.Select(&allTags, `SELECT * FROM tags ORDER BY name ASC`)
+	if err != nil {
+		log.WithField("err", err).Error("Error getting tags")
+		render.JSON(w, http.StatusInternalServerError, map[string]interface{}{
+			"error":   err.Error(),
+			"message": "error getting tags",
+		})
+		return
+	}
 
 	render.JSON(w, http.StatusOK, allTags)
 }
 
 func routeTagsCreate(c web.C, w http.ResponseWriter, r *http.Request) {
-	db := c.Env["db"].(gorm.DB)
+	db := c.Env["db"].(*sqlx.DB)
 
-	t := &Tag{}
-	if err := json.NewDecoder(r.Body).Decode(t); err != nil {
+	var createParams struct {
+		Name string `json:"name" validate:"nonzero"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&createParams); err != nil {
 		render.JSON(w, http.StatusBadRequest, map[string]interface{}{
 			"error":   err.Error(),
 			"message": "invalid decoding body JSON",
 		})
 		return
 	}
-	if errs := v.ValidateAndTag(t, "json"); errs != nil {
+	if errs := v.ValidateAndTag(&createParams, "json"); errs != nil {
 		render.JSON(w, http.StatusBadRequest, map[string]interface{}{
 			"error":   errorsToStrings(errs),
 			"message": "invalid input",
@@ -45,37 +56,50 @@ func routeTagsCreate(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Create(t)
-	render.JSON(w, http.StatusOK, t)
+	ret, err := db.NamedExec(iQuery(`INSERT INTO tags (name) VALUES (:name)`),
+		map[string]interface{}{
+			"name": createParams.Name,
+		})
+	if err != nil {
+		log.WithField("err", err).Error("Error saving tag")
+		render.JSON(w, http.StatusInternalServerError, map[string]interface{}{
+			"error":   err.Error(),
+			"message": "error saving tag",
+		})
+		return
+	}
+
+	id, _ := ret.LastInsertId()
+	render.JSON(w, http.StatusOK, Tag{
+		Id:   id,
+		Name: createParams.Name,
+	})
 }
 
 func routeTagsGetOne(c web.C, w http.ResponseWriter, r *http.Request) {
-	db := c.Env["db"].(gorm.DB)
+	db := c.Env["db"].(*sqlx.DB)
 
 	id, err := parseIntParam(c, "tag_id")
 	if err != nil {
 		render.JSON(w, http.StatusBadRequest, map[string]interface{}{
-			"error":   err,
-			"message": "invalid tag",
+			"error":   err.Error(),
+			"message": "invalid tag id",
 		})
 		return
 	}
 
 	var t Tag
-	if db.First(&t, id).RecordNotFound() {
+	sql, args, _ := sq.Select("*").From("tags").Where(squirrel.Eq{"id": id}).ToSql()
+	err = db.Get(&t, sql, args...)
+	if t.Id == 0 {
 		render.JSON(w, http.StatusNotFound, map[string]interface{}{
-			"error":   nil,
+			"error":   err.Error(),
 			"message": "tag not found",
 		})
 		return
 	}
 
-	// Load this tag's documents
-	var tagDocuments []Document
-	db.Model(&t).Association("Documents").Find(&tagDocuments)
-
-	// Save on model to be rendered
-	t.Documents = tagDocuments
+	// TODO: Load this tag's documents
 
 	render.JSON(w, http.StatusOK, t)
 }
