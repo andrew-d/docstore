@@ -28,8 +28,8 @@ func (c *AppController) JSON(w http.ResponseWriter, status int, val interface{})
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
-	w.Write(result)
-	return nil
+	_, err = w.Write(result)
+	return err
 }
 
 // Helper function to parse an integer parameter
