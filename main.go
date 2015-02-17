@@ -31,6 +31,8 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
+
 	db, err := sqlx.Connect("sqlite3", ":memory:")
 	if err != nil {
 		log.WithField("err", err).Fatal("Could not open db")

@@ -75,7 +75,7 @@ app.use('/assets', function(req, res, next) {
 
 if( opts.upstream ) {
   var upstreamProxy = httpProxy.createProxyServer({
-    target: opts.upstream,
+    target: opts.upstream + opts['upstream-prefix'],
     changeOrigin: true,
   });
 
