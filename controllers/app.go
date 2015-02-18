@@ -3,9 +3,11 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lann/squirrel"
 	"github.com/zenazn/goji/web"
+	"github.com/zenazn/goji/web/middleware"
 )
 
 // Action defines a standard function signature to use when creating controller
@@ -23,6 +25,9 @@ type AppController struct {
 
 	// Is the application running in debug mode?
 	Debug bool
+
+	// Logger
+	Logger *logrus.Entry
 }
 
 func (c *AppController) Action(a Action) web.Handler {
@@ -39,7 +44,13 @@ func (c *AppController) Action(a Action) web.Handler {
 				status = 500
 			}
 
-			// TODO: logging here
+			c.Logger.WithFields(logrus.Fields{
+				"err":        v.Base,
+				"status":     status,
+				"method":     r.Method,
+				"url":        r.URL.String(),
+				"request_id": middleware.GetReqID(ctx),
+			}).Error(v.Message)
 
 			// (Possibly) convert the error to something readable
 			var errVal interface{}
@@ -66,6 +77,13 @@ func (c *AppController) Action(a Action) web.Handler {
 			http.Redirect(w, r, v.Location, v.Code)
 
 		default:
+			c.Logger.WithFields(logrus.Fields{
+				"err":        v,
+				"method":     r.Method,
+				"url":        r.URL.String(),
+				"request_id": middleware.GetReqID(ctx),
+			}).Error("error while processing route")
+
 			c.JSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"error":   v.Error(),
 				"message": "internal server error",

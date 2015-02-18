@@ -62,6 +62,7 @@ func main() {
 		DB:      db,
 		Builder: sq,
 		Debug:   flagDebug,
+		Logger:  log.WithField("package", "controllers"),
 	}
 
 	m := web.New()
