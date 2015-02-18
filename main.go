@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/gorilla/schema"
 	"github.com/jmoiron/sqlx"
 	"github.com/lann/squirrel"
 	flag "github.com/ogier/pflag"
@@ -19,8 +22,11 @@ import (
 )
 
 var (
-	flagPort  uint16
-	flagDebug bool
+	flagPort          uint16
+	flagDebug         bool
+	flagDataDirectory string
+	flagDbType        string
+	flagDbConn        string
 
 	log = logrus.New()
 )
@@ -28,19 +34,40 @@ var (
 func init() {
 	flag.Uint16VarP(&flagPort, "port", "p", 8080, "port to listen on")
 	flag.BoolVarP(&flagDebug, "debug", "d", false, "run in debug mode")
+	flag.StringVar(&flagDataDirectory, "data", filepath.Join(".", "data"),
+		"path to store data in")
+	flag.StringVar(&flagDbType, "dbtype", "sqlite3", "type of database to use")
+	flag.StringVar(&flagDbConn, "dbconn", filepath.Join(".", "data", "docstore.db"),
+		"database connection string")
 }
 
 func main() {
 	flag.Parse()
 
-	db, err := sqlx.Connect("sqlite3", ":memory:")
+	// Create data directory
+	filesDir, err := filepath.Abs(filepath.Join(flagDataDirectory, "files"))
 	if err != nil {
-		log.WithField("err", err).Fatal("Could not open db")
+		log.WithField("err", err).Error("Error while getting absolute files directory")
 	}
 
-	// TODO: properly configured
+	err = os.MkdirAll(filesDir, 0700)
+	if err != nil {
+		log.WithField("err", err).Fatal("Could not create files directory")
+	}
+
+	// Connect to the database
+	db, err := sqlx.Connect(flagDbType, flagDbConn)
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"dbtype": flagDbType,
+			"dbconn": flagDbConn,
+			"err":    err,
+		}).Fatal("Could not open db")
+	}
+	defer db.Close()
+
 	var sq squirrel.StatementBuilderType
-	if false {
+	if flagDbType == "postgres" {
 		sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 	} else {
 		sq = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)
@@ -61,6 +88,7 @@ func main() {
 	appController := controllers.AppController{
 		DB:      db,
 		Builder: sq,
+		Decoder: schema.NewDecoder(),
 		Debug:   flagDebug,
 		Logger:  log.WithField("package", "controllers"),
 	}
@@ -88,10 +116,14 @@ func main() {
 	api.Get("/api/documents/:document_id", documentController.Action(documentController.GetOne))
 	api.Post("/api/documents", documentController.Action(documentController.Create))
 
-	fileController := controllers.FileController{AppController: appController}
-	api.Get("/api/documents/files", fileController.Action(fileController.GetAll))
+	fileController := controllers.FileController{
+		AppController: appController,
+		FilePath:      filesDir,
+	}
+	api.Get("/api/documents/:document_id/files", fileController.Action(fileController.GetAll))
+	api.Post("/api/documents/:document_id/files/upload", fileController.Action(fileController.Upload))
 	api.Get("/api/documents/:document_id/files/:file_id", fileController.Action(fileController.GetOne))
-	// TODO: how to create a file?
+	api.Get("/api/documents/:document_id/files/:file_id/content", fileController.Action(fileController.Content))
 
 	m.Handle("/api/*", api)
 

@@ -18,6 +18,7 @@ func (c *AppController) JSON(w http.ResponseWriter, status int, val interface{})
 
 	if c.Debug {
 		result, err = json.MarshalIndent(val, "", "  ")
+		result = append(result, '\n')
 	} else {
 		result, err = json.Marshal(val)
 	}

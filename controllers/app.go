@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/gorilla/schema"
 	"github.com/jmoiron/sqlx"
 	"github.com/lann/squirrel"
 	"github.com/zenazn/goji/web"
@@ -22,6 +23,9 @@ type AppController struct {
 
 	// SQL builder
 	Builder squirrel.StatementBuilderType
+
+	// Decoder for form bodies
+	Decoder *schema.Decoder
 
 	// Is the application running in debug mode?
 	Debug bool
