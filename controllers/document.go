@@ -53,23 +53,36 @@ func (c *DocumentController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Re
 
 func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Request) error {
 	var createParams struct {
-		Tags []int64 `json:"tags"`
+		Tags         []int64 `json:"tags"`
+		CollectionId int64   `json:"collection_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&createParams); err != nil {
 		return VError{err, "invalid body JSON", http.StatusBadRequest}
 	}
 
+	// Validate collection
+	var coll models.Collection
+	sql, args, _ := (c.Builder.
+		Select("*").
+		From("collections").
+		Where(squirrel.Eq{"id": createParams.CollectionId}).
+		ToSql())
+	err := c.DB.Get(&coll, sql, args...)
+	if coll.Id == 0 {
+		return VError{err, fmt.Sprintf("collection %d not found", createParams.CollectionId),
+			http.StatusNotFound}
+	}
+
 	createdAt := time.Now().UTC().Unix()
 
 	// Insert everything in a transaction
 	var id int64
-	err := c.inTransaction(func(tx *sqlx.Tx) error {
-		// TODO: collection
+	err = c.inTransaction(func(tx *sqlx.Tx) error {
 		sql, args, _ := (c.Builder.
 			Insert("documents").
 			Columns("created_at", "collection_id").
-			Values(createdAt, 0).
+			Values(createdAt, createParams.CollectionId).
 			ToSql())
 		ret, err := tx.Exec(c.iQuery(sql), args...)
 		if err != nil {
@@ -118,7 +131,7 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 	c.JSON(w, http.StatusOK, models.Document{
 		Id:           id,
 		CreatedAt:    createdAt,
-		CollectionId: 0, // TODO
+		CollectionId: createParams.CollectionId,
 	})
 	return nil
 }
