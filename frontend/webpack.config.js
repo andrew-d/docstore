@@ -66,7 +66,7 @@ if( IS_PRODUCTION ) {
 }
 
 // Javascript loaders
-var jsLoaders = ['react-hot', 'jsx?harmony'];
+var jsLoaders = ['react-hot', 'babel-loader'];
 var scriptModLoaders = [
     { test: /\.js$/,   loaders: jsLoaders, exclude: /node_modules/ },
     { test: /\.jsx$/,  loaders: jsLoaders, exclude: /node_modules/ },
@@ -243,7 +243,7 @@ var config = {
   module: {
     preLoaders: [
       { test: /\.jsx?$/, exclude: /node_modules/,
-        loader: 'jsxhint-loader?harmony' },
+        loaders: ['jshint-loader', 'babel-loader'] },
     ],
 
     loaders: [].concat(scriptModLoaders)
