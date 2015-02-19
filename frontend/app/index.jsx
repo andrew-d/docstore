@@ -1,3 +1,6 @@
+// This must be the first thing - require the polyfill.
+require('babel/polyfill');
+
 var React = require('react'),
     Router = require('react-router'),
     routes = require('./Routes');

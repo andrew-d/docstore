@@ -13,6 +13,7 @@
   "author": "Andrew Dunham <andrew@du.nham.ca>",
   "license": "MIT",
   "dependencies": {
+    "babel": "^4.3.0",
     "bluebird": "^2.9.9",
     "immutable": "^3.6.2",
     "lodash-node": "^3.0.1",
