@@ -39,7 +39,9 @@ CREATE TABLE IF NOT EXISTS document_tags (
 	tag_id      INTEGER NOT NULL,
 
 	FOREIGN KEY (document_id) REFERENCES documents(id),
-	FOREIGN KEY (tag_id) REFERENCES tags(id)
+	FOREIGN KEY (tag_id) REFERENCES tags(id),
+
+	PRIMARY KEY (document_id, tag_id)
 )`,
 	`
 CREATE TABLE IF NOT EXISTS collection_documents (
@@ -47,7 +49,9 @@ CREATE TABLE IF NOT EXISTS collection_documents (
 	document_id   INTEGER NOT NULL,
 
 	FOREIGN KEY (collection_id) REFERENCES collections(id),
-	FOREIGN KEY (document_id) REFERENCES documents(id)
+	FOREIGN KEY (document_id) REFERENCES documents(id),
+
+	PRIMARY KEY (collection_id, document_id)
 )`,
 }
 
