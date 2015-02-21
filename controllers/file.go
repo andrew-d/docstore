@@ -62,7 +62,9 @@ func (c *FileController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Reques
 		return VError{err, "error getting files", http.StatusInternalServerError}
 	}
 
-	c.JSON(w, http.StatusOK, allFiles)
+	c.JSON(w, http.StatusOK, M{
+		"files": allFiles,
+	})
 	return nil
 }
 
@@ -88,7 +90,7 @@ func (c *FileController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Reques
 		return VError{err, "file not found", 404}
 	}
 
-	c.JSON(w, http.StatusOK, f)
+	c.JSON(w, http.StatusOK, M{"file": f})
 	return nil
 }
 

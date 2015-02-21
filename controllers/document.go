@@ -24,7 +24,9 @@ func (c *DocumentController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Re
 		return VError{err, "error getting documents", http.StatusInternalServerError}
 	}
 
-	c.JSON(w, http.StatusOK, allDocuments)
+	c.JSON(w, http.StatusOK, M{
+		"documents": allDocuments,
+	})
 	return nil
 }
 
@@ -34,6 +36,7 @@ func (c *DocumentController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Re
 		return err
 	}
 
+	// Load document
 	var doc models.Document
 	sql, args, _ := (c.Builder.
 		Select("*").
@@ -47,7 +50,10 @@ func (c *DocumentController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Re
 
 	// TODO: Load this document's tags
 
-	c.JSON(w, http.StatusOK, doc)
+	// Return document
+	c.JSON(w, http.StatusOK, M{
+		"document": doc.WithTags(tags),
+	})
 	return nil
 }
 
@@ -128,10 +134,12 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 	}
 
 	// TODO: render document tags too
-	c.JSON(w, http.StatusOK, models.Document{
-		Id:           id,
-		CreatedAt:    createdAt,
-		CollectionId: createParams.CollectionId,
+	c.JSON(w, http.StatusOK, M{
+		"document": models.Document{
+			Id:           id,
+			CreatedAt:    createdAt,
+			CollectionId: createParams.CollectionId,
+		},
 	})
 	return nil
 }

@@ -21,7 +21,9 @@ func (c *TagController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Request
 		return VError{err, "error getting tags", http.StatusInternalServerError}
 	}
 
-	c.JSON(w, http.StatusOK, allTags)
+	c.JSON(w, http.StatusOK, M{
+		"tags": allTags,
+	})
 	return nil
 }
 
@@ -44,7 +46,9 @@ func (c *TagController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Request
 
 	// TODO: Load this tag's documents
 
-	c.JSON(w, http.StatusOK, t)
+	c.JSON(w, http.StatusOK, M{
+		"tag": t,
+	})
 	return nil
 }
 
@@ -71,9 +75,11 @@ func (c *TagController) Create(ctx web.C, w http.ResponseWriter, r *http.Request
 	}
 
 	id, _ := ret.LastInsertId()
-	c.JSON(w, http.StatusOK, models.Tag{
-		Id:   id,
-		Name: createParams.Name,
+	c.JSON(w, http.StatusOK, M{
+		"tag": models.Tag{
+			Id:   id,
+			Name: createParams.Name,
+		},
 	})
 	return nil
 }

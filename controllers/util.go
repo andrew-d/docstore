@@ -11,6 +11,9 @@ import (
 	"github.com/zenazn/goji/web"
 )
 
+// Helper type for a JSON-style map
+type M map[string]interface{}
+
 // Helper function to render JSON to a http.ResponseWriter
 func (c *AppController) JSON(w http.ResponseWriter, status int, val interface{}) error {
 	var result []byte
