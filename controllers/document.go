@@ -48,11 +48,27 @@ func (c *DocumentController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Re
 		return VError{err, "document not found", 404}
 	}
 
-	// TODO: Load this document's tags
+	// Load all tags for document
+	var tags []models.Tag
+	sql, args, _ = (c.Builder.
+		Select("tags.id AS id", "name").
+		From("tags").
+		Join("document_tags ON document_tags.tag_id == tags.id").
+		Join("documents ON document_tags.document_id == documents.id").
+		Where(squirrel.Eq{"documents.id": doc.Id}).
+		ToSql())
+	fmt.Println("sql", sql)
+	err = c.DB.Select(&tags, sql, args...)
+	if err != nil {
+		return VError{err, "error getting document's tags", http.StatusInternalServerError}
+	}
+
+	// TODO: load collection
 
 	// Return document
 	c.JSON(w, http.StatusOK, M{
 		"document": doc.WithTags(tags),
+		"tags":     tags,
 	})
 	return nil
 }
