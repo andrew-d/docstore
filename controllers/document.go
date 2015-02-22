@@ -118,6 +118,7 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 	createdAt := time.Now().UTC().Unix()
 
 	// Insert everything in a transaction
+	var tags []models.Tag
 	var id int64
 	err = c.inTransaction(func(tx *sqlx.Tx) error {
 		sql, args, _ := (c.Builder.
@@ -148,6 +149,9 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 					http.StatusNotFound}
 			}
 
+			// Save for rendering
+			tags = append(tags, tag)
+
 			// Insert it
 			sql, args, _ = (c.Builder.
 				Insert("document_tags").
@@ -168,13 +172,14 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 		return err
 	}
 
-	// TODO: render document tags too
+	doc := models.Document{
+		Id:           id,
+		CreatedAt:    createdAt,
+		CollectionId: createParams.CollectionId,
+	}
 	c.JSON(w, http.StatusOK, M{
-		"document": models.Document{
-			Id:           id,
-			CreatedAt:    createdAt,
-			CollectionId: createParams.CollectionId,
-		},
+		"document": doc.WithTags(tags),
+		"tags":     tags,
 	})
 	return nil
 }
