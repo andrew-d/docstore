@@ -23,7 +23,7 @@
     "react-router": "^0.12.0",
     "react-router-bootstrap": "^0.9.1",
     "superagent": "^0.21.0",
-    "superagent-bluebird-promise": "^0.6.0"
+    "superagent-promises": "git+https://github.com/wheresrhys/superagent-promises#e439d401b60d6ec03ed19ef47edb1ad58c773cf1"
   },
   "devDependencies": {
     "autoprefixer-loader": "^1.1.0",

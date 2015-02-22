@@ -1,7 +1,8 @@
 var ReactFlux = require('react-flux');
 
 var Constants = ReactFlux.createConstants([
-  'FETCH',
+  'LIST',
+  'GET',
   'CREATE',
 ], 'TAG');
 

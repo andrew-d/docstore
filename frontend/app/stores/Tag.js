@@ -10,7 +10,7 @@ var Store = ReactFlux.createStore({
   },
 }, [
 
-  [constants.FETCH_SUCCESS, function onFetch(tags) {
+  [constants.LIST_SUCCESS, function onFetch(tags) {
     console.log("Tags:", tags);
   }],
 

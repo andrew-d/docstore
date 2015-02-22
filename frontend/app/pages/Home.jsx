@@ -1,6 +1,6 @@
 var React = require('react');
 
-var tagActions = require('../flux/actions/Tag');
+var tagActions = require('../actions/Tag');
 
 
 var Home = React.createClass({
@@ -11,8 +11,8 @@ var Home = React.createClass({
 
         <p>This is the home page.</p>
 
-        <button onClick={this.handleFetch}>
-          Fetch Tags
+        <button onClick={this.handleList}>
+          List Tags
         </button>
         <button onClick={this.handleCreate}>
           Create Tag
@@ -21,8 +21,8 @@ var Home = React.createClass({
     );
   },
 
-  handleFetch: function() {
-    tagActions.fetch();
+  handleList: function() {
+    tagActions.list();
   },
 
   handleCreate: function() {
