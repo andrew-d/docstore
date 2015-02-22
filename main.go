@@ -25,6 +25,7 @@ import (
 )
 
 var (
+	flagHost          string
 	flagPort          uint16
 	flagDebug         bool
 	flagDataDirectory string
@@ -35,6 +36,7 @@ var (
 )
 
 func init() {
+	flag.StringVar(&flagHost, "host", "localhost", "host to listen on")
 	flag.Uint16VarP(&flagPort, "port", "p", 8080, "port to listen on")
 	flag.BoolVarP(&flagDebug, "debug", "d", false, "run in debug mode")
 	flag.StringVar(&flagDataDirectory, "data", filepath.Join(".", "data"),
@@ -137,7 +139,7 @@ func main() {
 	graceful.PostHook(func() { log.Info("Stopped") })
 
 	// Start listening
-	addr := fmt.Sprintf("localhost:%d", flagPort)
+	addr := fmt.Sprintf("%s:%d", flagHost, flagPort)
 	log.WithField("addr", addr).Info("Starting server...")
 	if err := graceful.ListenAndServe(addr, m); err != nil {
 		log.WithField("err", err).Error("Error while listening")
