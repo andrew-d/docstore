@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"image/png"
 	"io"
 	"net/http"
 	"os"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/lann/squirrel"
+	"github.com/tjgq/sane"
 	"github.com/zenazn/goji/web"
 
 	"github.com/andrew-d/docstore/models"
@@ -168,7 +171,73 @@ func (c *FileController) Upload(ctx web.C, w http.ResponseWriter, r *http.Reques
 		return VError{err, "could not decode form contents", 400}
 	}
 
-	hashBytes := sha256.Sum256([]byte(createParams.Data))
+	// Actually save the data
+	id, err := c.newFromBytes(doc, createParams.Filename, []byte(createParams.Data))
+	if err != nil {
+		return err
+	}
+
+	// Set the location of this file, return an empty response
+	w.Header().Set("Location", fmt.Sprintf("/api/documents/%d/files/%d", doc.Id, id))
+	w.WriteHeader(201)
+	return nil
+}
+
+func (c *FileController) Scan(ctx web.C, w http.ResponseWriter, r *http.Request) error {
+	var doc *models.Document
+	var err error
+
+	if doc, err = c.getDocument(ctx); err != nil {
+		return err
+	}
+
+	// TODO: do we even need this filename
+	var createParams struct {
+		Filename string `schema:"filename"`
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return VError{err, "could not parse form body", 400}
+	}
+
+	if err = c.Decoder.Decode(&createParams, r.PostForm); err != nil {
+		return VError{err, "could not decode form contents", 400}
+	}
+
+	// Scan an image
+	conn, err := sane.Open("DEVICE")
+	if err != nil {
+		return VError{err, "could not open scanner", 500}
+	}
+	defer conn.Close()
+
+	img, err := conn.ReadImage()
+	if err != nil {
+		return VError{err, "could not scan image", 500}
+	}
+
+	// Save the image to a byte array
+	var buf bytes.Buffer
+	err = png.Encode(&buf, img)
+	if err != nil {
+		return VError{err, "error encoding image", 500}
+	}
+
+	// Actually save the image.
+	id, err := c.newFromBytes(doc, createParams.Filename, buf.Bytes())
+	if err != nil {
+		return err
+	}
+
+	// Set the location of this file, return an empty response
+	w.Header().Set("Location", fmt.Sprintf("/api/documents/%d/files/%d", doc.Id, id))
+	w.WriteHeader(201)
+	return nil
+}
+
+func (c *FileController) newFromBytes(doc *models.Document, filename string, data []byte) (int64, error) {
+	// Get the file hash
+	hashBytes := sha256.Sum256(data)
 	hash := hex.EncodeToString(hashBytes[:])
 
 	writePath := filepath.Join(c.FilePath, hash)
@@ -182,29 +251,28 @@ func (c *FileController) Upload(ctx web.C, w http.ResponseWriter, r *http.Reques
 	// disk if it's already there.
 	f, err := os.OpenFile(writePath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil && err != os.ErrExist {
-		return err
+		// TODO: handle ErrExist
+		return -1, err
 	}
 	defer f.Close()
 
-	if _, err = io.WriteString(f, createParams.Data); err != nil {
-		return err
+	if _, err = f.Write(data); err != nil {
+		// TODO: should remove partially-written file
+		return -1, err
 	}
 
-	// File exists - great.  Create the file entry.
+	// File exists.  Create the file entry.
 	sql, args, _ := (c.Builder.
 		Insert("files").
 		Columns("name", "hash", "document_id").
-		Values(createParams.Filename, hash, doc.Id).
+		Values(filename, hash, doc.Id).
 		ToSql())
 	ret, err := c.DB.Exec(c.iQuery(sql), args...)
 	if err != nil {
-		return VError{err, "error saving document", http.StatusInternalServerError}
+		return -1, VError{err, "error saving document", http.StatusInternalServerError}
 	}
 
 	id, _ := ret.LastInsertId()
+	return id, nil
 
-	// Set the location of this file, return an empty response
-	w.Header().Set("Location", fmt.Sprintf("/api/documents/%d/files/%d", doc.Id, id))
-	w.WriteHeader(201)
-	return nil
 }

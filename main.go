@@ -128,6 +128,7 @@ func main() {
 	}
 	api.Get("/api/documents/:document_id/files", fileController.Action(fileController.GetAll))
 	api.Post("/api/documents/:document_id/files/upload", fileController.Action(fileController.Upload))
+	api.Post("/api/documents/:document_id/files/scan", fileController.Action(fileController.Scan))
 	api.Get("/api/documents/:document_id/files/:file_id", fileController.Action(fileController.GetOne))
 	api.Get("/api/documents/:document_id/files/:file_id/content", fileController.Action(fileController.Content))
 
