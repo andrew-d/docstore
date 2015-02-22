@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/jmoiron/sqlx"
 	"github.com/lann/squirrel"
+	"github.com/lidashuang/goji-gzip"
 	flag "github.com/ogier/pflag"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
@@ -101,6 +102,7 @@ func main() {
 	m.Use(logMiddleware)
 	m.Use(recoverMiddleware)
 	m.Use(middleware.AutomaticOptions)
+	m.Use(gzip.GzipHandler)
 
 	// Create API mux
 	api := web.New()
