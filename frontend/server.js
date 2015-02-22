@@ -74,17 +74,18 @@ app.use('/assets', function(req, res, next) {
 });
 
 if( opts.upstream ) {
+  var upstreamTarget = opts.upstream + opts['upstream-prefix'];
   var upstreamProxy = httpProxy.createProxyServer({
-    target: opts.upstream + opts['upstream-prefix'],
+    target: upstreamTarget,
     changeOrigin: true,
   });
 
   upstreamProxy.on('error', function(e) {
-    console.log('Error proxying to ' + opts.upstream);
+    console.log('Error proxying to ' + upstreamTarget);
     console.log(e);
   });
 
-  console.log('Proxying to ' + opts.upstream);
+  console.log('Proxying to ' + upstreamTarget);
 
   // Print the status of requests to/from the upstream API.
   app.use(opts['upstream-prefix'], morgan('dev'));
