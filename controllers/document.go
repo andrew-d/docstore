@@ -18,12 +18,31 @@ type DocumentController struct {
 }
 
 func (c *DocumentController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Request) error {
+	var queryParams struct {
+		Limit  uint64 `schema:"limit"`
+		Offset uint64 `schema:"offset"`
+	}
+
+	// Default value
+	queryParams.Limit = 20
+
+	if err := c.Decoder.Decode(&queryParams, r.URL.Query()); err != nil {
+		return VError{err, "could not decode query parameters", 400}
+	}
+
 	allDocuments := []models.Document{}
-	err := c.DB.Select(&allDocuments, `SELECT * FROM documents ORDER BY id ASC`)
+	sql, args, _ := (c.Builder.
+		Select("*").
+		From("documents").
+		Offset(queryParams.Offset).
+		Limit(queryParams.Limit).
+		ToSql())
+	err := c.DB.Select(&allDocuments, sql, args...)
 	if err != nil {
 		return VError{err, "error getting documents", http.StatusInternalServerError}
 	}
 
+	// TODO: should we load associated tags for these documents?
 	c.JSON(w, http.StatusOK, M{
 		"documents": allDocuments,
 	})
