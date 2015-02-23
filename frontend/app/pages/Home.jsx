@@ -1,6 +1,6 @@
 var React = require('react');
 
-var tagActions = require('../actions/Tag');
+var tagActions = require('../flux/actions/Tag');
 
 
 var Home = React.createClass({

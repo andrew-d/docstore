@@ -1,33 +1,65 @@
 package models
 
+import (
+	"database/sql"
+	"encoding/json"
+)
+
+// TODO: Rename CollectionId ==> Collection?
+
 type Document struct {
-	Id           int64 `json:"id"`
-	CreatedAt    int64 `json:"created_at" db:"created_at"`
-	CollectionId int64 `json:"collection_id" db:"collection_id"`
+	// Database fields
+
+	Id           int64
+	Name         string
+	CreatedAt    int64         `db:"created_at"`
+	CollectionId sql.NullInt64 `db:"collection_id"`
+
+	// Private fields
+
+	tagIds  []int64
+	fileIds []int64
 }
 
-// Helper method to return a JSON-serializable struct of the document with the
-// given tags.
-func (d *Document) WithTags(tags []Tag) interface{} {
-	// Get IDs
-	tagIds := make([]int64, len(tags))
+// Marshal this document as JSON
+func (d *Document) MarshalJSON() ([]byte, error) {
+	ret := map[string]interface{}{
+		"id":         d.Id,
+		"name":       d.Name,
+		"created_at": d.CreatedAt,
+	}
+
+	if d.CollectionId.Valid {
+		ret["collection_id"] = d.CollectionId.Int64
+	}
+
+	if len(d.tagIds) > 0 {
+		ret["tags"] = d.tagIds
+	}
+
+	if len(d.fileIds) > 0 {
+		ret["files"] = d.fileIds
+	}
+
+	return json.Marshal(ret)
+}
+
+// Helper method to attach the given tags to this document, so they render when
+// marshalling to JSON.
+func (d *Document) WithTags(tags []Tag) *Document {
+	d.tagIds = make([]int64, len(tags))
 	for i, tag := range tags {
-		tagIds[i] = tag.Id
+		d.tagIds[i] = tag.Id
 	}
+	return d
+}
 
-	// Make document
-	type returnType struct {
-		Id           int64   `json:"id"`
-		CreatedAt    int64   `json:"created_at"`
-		CollectionId int64   `json:"collection_id"`
-		Tags         []int64 `json:"tags"`
+// Helper method to attach the given files to this document, so they render
+// when marshalling to JSON.
+func (d *Document) WithFiles(files []File) *Document {
+	d.fileIds = make([]int64, len(files))
+	for i, file := range files {
+		d.fileIds[i] = file.Id
 	}
-
-	ret := &returnType{
-		Id:           d.Id,
-		CreatedAt:    d.CreatedAt,
-		CollectionId: d.CollectionId,
-		Tags:         tagIds,
-	}
-	return ret
+	return d
 }

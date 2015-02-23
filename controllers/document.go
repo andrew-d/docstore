@@ -94,6 +94,7 @@ func (c *DocumentController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Re
 
 func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Request) error {
 	var createParams struct {
+		Name         string  `json:"name"`
 		Tags         []int64 `json:"tags"`
 		CollectionId int64   `json:"collection_id"`
 	}
@@ -102,36 +103,51 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 		return VError{err, "invalid body JSON", http.StatusBadRequest}
 	}
 
-	// Validate collection
-	var coll models.Collection
-	sql, args, _ := (c.Builder.
-		Select("*").
-		From("collections").
-		Where(squirrel.Eq{"id": createParams.CollectionId}).
-		ToSql())
-	err := c.DB.Get(&coll, sql, args...)
-	if coll.Id == 0 {
-		return VError{err, fmt.Sprintf("collection %d not found", createParams.CollectionId),
-			http.StatusNotFound}
+	if len(createParams.Name) < 5 {
+		return VError{nil, "document name must be longer than 5 characters", 400}
 	}
 
-	createdAt := time.Now().UTC().Unix()
+	// Create document model
+	ret := models.Document{
+		Name:      createParams.Name,
+		CreatedAt: time.Now().UTC().Unix(),
+	}
+
+	// If given, add document to collection
+	if createParams.CollectionId > 0 {
+		var coll models.Collection
+		sql, args, _ := (c.Builder.
+			Select("*").
+			From("collections").
+			Where(squirrel.Eq{"id": createParams.CollectionId}).
+			ToSql())
+		err := c.DB.Get(&coll, sql, args...)
+		if coll.Id == 0 {
+			return VError{err, fmt.Sprintf("collection %d not found", createParams.CollectionId),
+				http.StatusNotFound}
+		}
+
+		ret.CollectionId.Int64 = coll.Id
+		ret.CollectionId.Valid = true
+	}
 
 	// Insert everything in a transaction
 	var tags []models.Tag
-	var id int64
-	err = c.inTransaction(func(tx *sqlx.Tx) error {
+	err := c.inTransaction(func(tx *sqlx.Tx) error {
+		// Insert the document
 		sql, args, _ := (c.Builder.
 			Insert("documents").
-			Columns("created_at", "collection_id").
-			Values(createdAt, createParams.CollectionId).
+			Columns("name", "created_at", "collection_id").
+			Values(ret.Name, ret.CreatedAt, ret.CollectionId).
 			ToSql())
-		ret, err := tx.Exec(c.iQuery(sql), args...)
+		sqlRes, err := tx.Exec(c.iQuery(sql), args...)
 		if err != nil {
 			return VError{err, "error saving document", http.StatusInternalServerError}
 		}
 
-		id, _ = ret.LastInsertId()
+		// Save the returned ID
+		id, _ := sqlRes.LastInsertId()
+		ret.Id = id
 
 		// Insert all tags
 		for _, tag_id := range createParams.Tags {
@@ -172,13 +188,8 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 		return err
 	}
 
-	doc := models.Document{
-		Id:           id,
-		CreatedAt:    createdAt,
-		CollectionId: createParams.CollectionId,
-	}
 	c.JSON(w, http.StatusOK, M{
-		"document": doc.WithTags(tags),
+		"document": ret.WithTags(tags), // Attach tag IDs to document
 		"tags":     tags,
 	})
 	return nil

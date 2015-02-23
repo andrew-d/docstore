@@ -14,11 +14,20 @@ CREATE TABLE IF NOT EXISTS collections (
 	`
 CREATE TABLE IF NOT EXISTS documents (
 	id            INTEGER PRIMARY KEY,
+	name		  VARCHAR(255) NOT NULL,
 	created_at    INTEGER NOT NULL,
 	collection_id INTEGER,
 
 	FOREIGN KEY (collection_id) REFERENCES collections(id)
 )`,
+	`
+-- There can only be one document with a given name in each collection
+-- TODO: should we allow duplicate names if they're not in any collection?
+--		 if so, add: "WHERE collection_id IS NOT NULL"
+CREATE UNIQUE INDEX document_unique_in_coll ON documents (
+	collection_id, name
+);
+`,
 	`
 CREATE TABLE IF NOT EXISTS tags (
 	id   INTEGER PRIMARY KEY,

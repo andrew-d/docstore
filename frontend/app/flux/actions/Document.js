@@ -18,12 +18,21 @@ var Actions = ReactFlux.createActions({
                   .end();
   }],
 
-  create: [constants.CREATE, function(name) {
-    return request.post('/api/tags')
-                  .send({name: name})
-                  .set('Accept', 'application/json')
-                  .use(promisify)
-                  .end();
+  create: [constants.CREATE, function(name, cb) {
+    var p = request.post('/api/documents')
+                   .send({name: name})
+                   .set('Accept', 'application/json')
+                   .use(promisify)
+                   .end();
+
+    // Callback when the document has been created.
+    if( cb ) {
+      p = p.then(function(resp) {
+        cb(resp.body.document);
+      });
+    }
+
+    return p;
   }],
 });
 

@@ -18,6 +18,9 @@ var App = React.createClass({
             <NavItemLink to='index'>
               Home
             </NavItemLink>
+            <NavItemLink to='documents'>
+              Documents
+            </NavItemLink>
             <NavItemLink to='about'>
               About
             </NavItemLink>
