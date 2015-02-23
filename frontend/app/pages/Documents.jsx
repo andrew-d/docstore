@@ -17,6 +17,13 @@ var Documents = React.createClass({
     };
   },
 
+  getQueryParams: function() {
+    return {
+      offset: (+this.getQuery().offset) || 0,
+      limit:  (+this.getQuery().limit) || 20,
+    };
+  },
+
   validationState: function() {
     var length = this.state.documentName.length;
 
@@ -49,16 +56,35 @@ var Documents = React.createClass({
     });
   },
 
+  handlePrevious: function(e) {
+    e.preventDefault();
+
+    var q = this.getQueryParams();
+    this.transitionTo("documents", {}, {
+      offset: q.offset - q.limit,   // TODO: underflow
+      limit:  q.limit,
+    });
+  },
+
+  handleNext: function(e) {
+    e.preventDefault();
+
+    var q = this.getQueryParams();
+    this.transitionTo("documents", {}, {
+      offset: q.offset + q.limit,   // TODO: overflow
+      limit:  q.limit,
+    });
+  },
+
   render: function() {
-    var offset = this.getQuery().offset || 0,
-        limit  = this.getQuery().limit || 20,
+    var q = this.getQueryParams(),
         nextUrl = this.makePath("documents", {}, {
-          offset: offset + limit,       // TODO: overflow
-          limit: limit,
+          offset: q.offset + q.limit,       // TODO: overflow
+          limit: q.limit,
         }),
         prevUrl = this.makePath("documents", {}, {
-          offset: offset - limit,       // TODO: underflow
-          limit: limit,
+          offset: q.offset - q.limit,       // TODO: underflow
+          limit: q.limit,
         });
 
     return (
@@ -68,8 +94,12 @@ var Documents = React.createClass({
             <h3>Documents</h3>
 
             <Pager>
-              <PageItem previous href={prevUrl}>&larr; Previous</PageItem>
-              <PageItem next href={nextUrl}>Next &rarr;</PageItem>
+              <PageItem previous href={prevUrl} onClick={this.handlePrevious}>
+                &larr; Previous
+              </PageItem>
+              <PageItem next href={nextUrl} onClick={this.handleNext}>
+                Next &rarr;
+              </PageItem>
             </Pager>
           </div>
           <div className="col-sm-3">
