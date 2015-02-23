@@ -11,5 +11,7 @@ module.exports = {
 
   stores: {
     TagContent: require('./stores/TagContent'),
+    TagDocuments: require('./stores/TagDocuments'),
+    DocumentContent: require('./stores/DocumentContent'),
   },
 };

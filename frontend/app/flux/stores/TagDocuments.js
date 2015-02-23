@@ -1,6 +1,7 @@
 var Immutable = require('immutable'),
     ReactFlux = require('react-flux');
 
+var TagConstants = require('../constants/Tag');
 
 /**
  * This store is responsible for keeping track of which documents beling to
