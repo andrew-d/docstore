@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS documents (
 -- There can only be one document with a given name in each collection
 -- TODO: should we allow duplicate names if they're not in any collection?
 --		 if so, add: "WHERE collection_id IS NOT NULL"
-CREATE UNIQUE INDEX document_unique_in_coll ON documents (
+CREATE UNIQUE INDEX IF NOT EXISTS document_unique_in_coll ON documents (
 	collection_id, name
 );
 `,
