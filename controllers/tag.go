@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/lann/squirrel"
 	"github.com/zenazn/goji/web"
@@ -15,8 +16,35 @@ type TagController struct {
 }
 
 func (c *TagController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Request) error {
+	var sql string
+	var args []interface{}
+
+	// If we have a 'ids[]' parameter, it limits what tags we load.
+	query := r.URL.Query()
+	if ids, ok := query["ids[]"]; ok {
+		var tagIds []int64
+		for _, id := range ids {
+			i, err := strconv.ParseUint(id, 10, 64)
+			if err != nil {
+				continue
+			}
+
+			tagIds = append(tagIds, int64(i))
+		}
+
+		sql, args, _ = (c.Builder.
+			Select("*").
+			From("tags").
+			Where(squirrel.Eq{"id": tagIds}).
+			OrderBy("name ASC").
+			ToSql())
+	} else {
+		sql = `SELECT * FROM tags ORDER BY name ASC`
+		args = []interface{}{}
+	}
+
 	allTags := []models.Tag{}
-	err := c.DB.Select(&allTags, `SELECT * FROM tags ORDER BY name ASC`)
+	err := c.DB.Select(&allTags, sql, args...)
 	if err != nil {
 		return VError{err, "error getting tags", http.StatusInternalServerError}
 	}
