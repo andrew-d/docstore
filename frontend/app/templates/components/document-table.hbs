@@ -1,0 +1,20 @@
+<table class="table table-bordered table-condensed table-hover">
+  <thead>
+    <tr>
+      <th {{action 'setSort' 'name' bubbles=false}}>
+        Name <i {{bind-attr class=":fa :fa-fw :pull-right nameSortClass"}}></i>
+      </th>
+      <th {{action 'setSort' 'created_at' bubbles=false}}>
+        Created At <i {{bind-attr class=":fa :fa-fw :pull-right createdAtSortClass"}}></i>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each document in sortedDocuments}}
+      {{#link-to 'document' document tagName="tr" class="pointer"}}
+        <td>{{document.name}}</td>
+        <td>{{moment-calendar document.created_at}}</td>
+      {{/link-to}}
+    {{/each}}
+  </tbody>
+</table>

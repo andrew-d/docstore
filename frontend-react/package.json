@@ -1,0 +1,69 @@
+{
+  "name": "docstore",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "bower install",
+    "build-prod": "NODE_ENV=production node_modules/.bin/webpack --progress --colors",
+    "build": "node_modules/.bin/webpack --progress --colors",
+    "watch": "node_modules/.bin/webpack --watch --progress --colors",
+    "test": "node --harmony node_modules/jest-cli/bin/jest.js"
+  },
+  "author": "Andrew Dunham <andrew@du.nham.ca>",
+  "license": "MIT",
+  "dependencies": {
+    "babel": "^4.4.0",
+    "bluebird": "^2.9.12",
+    "immutable": "^3.6.2",
+    "lodash-node": "^3.3.0",
+    "react": "^0.12.2",
+    "react-bootstrap": "^0.15.1",
+    "react-flux": "0.0.19",
+    "react-router": "^0.12.0",
+    "react-router-bootstrap": "^0.9.1",
+    "superagent": "^0.21.0",
+    "superagent-promises": "git+https://github.com/wheresrhys/superagent-promises#e439d401b60d6ec03ed19ef47edb1ad58c773cf1"
+  },
+  "devDependencies": {
+    "autoprefixer-loader": "^1.1.0",
+    "babel-core": "^4.4.3",
+    "babel-jest": "^4.0.0",
+    "babel-loader": "^4.0.0",
+    "css-loader": "^0.9.1",
+    "express": "^4.11.2",
+    "extract-text-webpack-plugin": "^0.3.8",
+    "file-loader": "^0.8.1",
+    "html-webpack-plugin": "^1.1.0",
+    "http-proxy": "^1.8.1",
+    "jest-cli": "^0.4.0",
+    "jshint": "^2.6.0",
+    "jshint-loader": "^0.8.2",
+    "morgan": "^1.5.1",
+    "nomnom": "^1.8.1",
+    "react-hot-loader": "^1.1.4",
+    "react-tools": "^0.12.2",
+    "sass-loader": "^0.4.0-beta.1",
+    "style-loader": "^0.8.3",
+    "url-loader": "^0.5.5",
+    "webpack": "^1.5.3",
+    "webpack-dev-server": "^1.7.0",
+    "when": "^3.7.2"
+  },
+  "jest": {
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
+    "testFileExtensions": [
+      "es6",
+      "js"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "es6"
+    ],
+    "unmockedModulePathPatterns": [
+      "<rootDir>/node_modules/immutable",
+      "<rootDir>/node_modules/react"
+    ]
+  }
+}

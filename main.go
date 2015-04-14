@@ -115,11 +115,13 @@ func main() {
 	tagController := controllers.TagController{AppController: appController}
 	api.Get("/api/tags", tagController.Action(tagController.GetAll))
 	api.Get("/api/tags/:tag_id", tagController.Action(tagController.GetOne))
+	api.Delete("/api/tags/:tag_id", tagController.Action(tagController.Delete))
 	api.Post("/api/tags", tagController.Action(tagController.Create))
 
 	documentController := controllers.DocumentController{AppController: appController}
 	api.Get("/api/documents", documentController.Action(documentController.GetAll))
 	api.Get("/api/documents/:document_id", documentController.Action(documentController.GetOne))
+	api.Delete("/api/documents/:document_id", documentController.Action(documentController.Delete))
 	api.Post("/api/documents", documentController.Action(documentController.Create))
 
 	fileController := controllers.FileController{

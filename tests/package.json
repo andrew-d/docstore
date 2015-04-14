@@ -1,0 +1,14 @@
+{
+  "name": "docstore-tests",
+  "version": "0.0.1",
+  "dependencies": {
+    "chai": "^2.1.1",
+    "mocha": "^2.2.0",
+    "superagent": "^0.21.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node_modules/mocha/bin/mocha .",
+    "watch": "node_modules/mocha/bin/mocha --watch ."
+  }
+}

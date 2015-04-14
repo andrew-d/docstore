@@ -2,15 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/lann/squirrel"
 	"github.com/zenazn/goji/web"
 
-	"github.com/andrew-d/docstore/models"
+	"github.com/andrew-d/docstore/daos"
 )
 
 type DocumentController struct {
@@ -30,21 +27,27 @@ func (c *DocumentController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Re
 		return VError{err, "could not decode query parameters", 400}
 	}
 
-	allDocuments := []models.Document{}
+	// TODO: embed in struct?
+	dao := daos.DocumentDAO{
+		DB:      c.DB,
+		Builder: c.Builder,
+	}
+
 	sql, args, _ := (c.Builder.
 		Select("*").
 		From("documents").
 		Offset(queryParams.Offset).
 		Limit(queryParams.Limit).
 		ToSql())
-	err := c.DB.Select(&allDocuments, sql, args...)
+	allDocuments, allTags, err := dao.LoadDocuments(sql, args...)
 	if err != nil {
 		return VError{err, "error getting documents", http.StatusInternalServerError}
 	}
 
-	// TODO: should we load associated tags for these documents?
+	// TODO: render document collections
 	c.JSON(w, http.StatusOK, M{
 		"documents": allDocuments,
+		"tags":      allTags,
 	})
 	return nil
 }
@@ -55,38 +58,31 @@ func (c *DocumentController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Re
 		return err
 	}
 
+	// TODO: embed in struct?
+	dao := daos.DocumentDAO{
+		DB:      c.DB,
+		Builder: c.Builder,
+	}
+
 	// Load document
-	var doc models.Document
 	sql, args, _ := (c.Builder.
 		Select("*").
 		From("documents").
 		Where(squirrel.Eq{"id": id}).
 		ToSql())
-	err = c.DB.Get(&doc, sql, args...)
+	doc, tags, err := dao.LoadDocument(sql, args...)
+	if err != nil {
+		return VError{err, "error loading document", 500}
+	}
 	if doc.Id == 0 {
 		return VError{err, "document not found", 404}
 	}
 
-	// Load all tags for document
-	var tags []models.Tag
-	sql, args, _ = (c.Builder.
-		Select("tags.id AS id", "name").
-		From("tags").
-		Join("document_tags ON document_tags.tag_id == tags.id").
-		Join("documents ON document_tags.document_id == documents.id").
-		Where(squirrel.Eq{"documents.id": doc.Id}).
-		ToSql())
-	fmt.Println("sql", sql)
-	err = c.DB.Select(&tags, sql, args...)
-	if err != nil {
-		return VError{err, "error getting document's tags", http.StatusInternalServerError}
-	}
-
-	// TODO: load collection
+	// TODO: render collection
 
 	// Return document
 	c.JSON(w, http.StatusOK, M{
-		"document": doc.WithTags(tags),
+		"document": &doc, // TODO: this is a hack to get MarshalJSON working
 		"tags":     tags,
 	})
 	return nil
@@ -107,90 +103,44 @@ func (c *DocumentController) Create(ctx web.C, w http.ResponseWriter, r *http.Re
 		return VError{nil, "document name must be longer than 5 characters", 400}
 	}
 
-	// Create document model
-	ret := models.Document{
-		Name:      createParams.Name,
-		CreatedAt: time.Now().UTC().Unix(),
+	// TODO: embed in struct?
+	dao := daos.DocumentDAO{
+		DB:      c.DB,
+		Builder: c.Builder,
 	}
 
-	// If given, add document to collection
-	if createParams.CollectionId > 0 {
-		var coll models.Collection
-		sql, args, _ := (c.Builder.
-			Select("*").
-			From("collections").
-			Where(squirrel.Eq{"id": createParams.CollectionId}).
-			ToSql())
-		err := c.DB.Get(&coll, sql, args...)
-		if coll.Id == 0 {
-			return VError{err, fmt.Sprintf("collection %d not found", createParams.CollectionId),
-				http.StatusNotFound}
-		}
-
-		ret.CollectionId.Int64 = coll.Id
-		ret.CollectionId.Valid = true
-	}
-
-	// Insert everything in a transaction
-	var tags []models.Tag
-	err := c.inTransaction(func(tx *sqlx.Tx) error {
-		// Insert the document
-		sql, args, _ := (c.Builder.
-			Insert("documents").
-			Columns("name", "created_at", "collection_id").
-			Values(ret.Name, ret.CreatedAt, ret.CollectionId).
-			ToSql())
-		sqlRes, err := tx.Exec(c.iQuery(sql), args...)
-		if err != nil {
-			return VError{err, "error saving document", http.StatusInternalServerError}
-		}
-
-		// Save the returned ID
-		id, _ := sqlRes.LastInsertId()
-		ret.Id = id
-
-		// Insert all tags
-		for _, tag_id := range createParams.Tags {
-			var tag models.Tag
-
-			// Check the tag exists
-			sql, args, _ := (c.Builder.
-				Select("*").
-				From("tags").
-				Where(squirrel.Eq{"id": id}).
-				ToSql())
-			err = tx.Get(&tag, sql, args...)
-			if tag.Id == 0 {
-				return VError{err, fmt.Sprintf("tag %d not found", tag_id),
-					http.StatusNotFound}
-			}
-
-			// Save for rendering
-			tags = append(tags, tag)
-
-			// Insert it
-			sql, args, _ = (c.Builder.
-				Insert("document_tags").
-				Columns("document_id", "tag_id").
-				Values(id, tag_id).
-				ToSql())
-			_, err := tx.Exec(sql, args...)
-			if err != nil {
-				return VError{err, "error saving document tag",
-					http.StatusInternalServerError}
-			}
-		}
-
-		return nil
-	})
-
+	doc, tags, err := dao.CreateDocument(createParams.Name,
+		createParams.Tags,
+		createParams.CollectionId)
 	if err != nil {
 		return err
 	}
 
 	c.JSON(w, http.StatusOK, M{
-		"document": ret.WithTags(tags), // Attach tag IDs to document
+		"document": &doc, // TODO: this is a hack to get MarshalJSON working
 		"tags":     tags,
 	})
+	return nil
+}
+
+func (c *DocumentController) Delete(ctx web.C, w http.ResponseWriter, r *http.Request) error {
+	id, err := c.parseIntParam(ctx, "document_id")
+	if err != nil {
+		return err
+	}
+
+	sql, args, _ := (c.Builder.
+		Delete("documents").
+		Where(squirrel.Eq{"id": id}).
+		ToSql())
+	ret, err := c.DB.Exec(sql, args...)
+	if err != nil {
+		return VError{err, "error deleting document", 500}
+	}
+	if rows, _ := ret.RowsAffected(); rows == 0 {
+		return VError{err, "document not found", 404}
+	}
+
+	w.WriteHeader(204)
 	return nil
 }

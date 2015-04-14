@@ -49,6 +49,11 @@ func (c *TagController) GetAll(ctx web.C, w http.ResponseWriter, r *http.Request
 		return VError{err, "error getting tags", http.StatusInternalServerError}
 	}
 
+	empty := []int64{}
+	for i := 0; i < len(allTags); i++ {
+		allTags[i].Documents = empty
+	}
+
 	c.JSON(w, http.StatusOK, M{
 		"tags": allTags,
 	})
@@ -73,6 +78,7 @@ func (c *TagController) GetOne(ctx web.C, w http.ResponseWriter, r *http.Request
 	}
 
 	// TODO: Load this tag's documents
+	t.Documents = []int64{}
 
 	c.JSON(w, http.StatusOK, M{
 		"tag": t,
@@ -105,9 +111,32 @@ func (c *TagController) Create(ctx web.C, w http.ResponseWriter, r *http.Request
 	id, _ := ret.LastInsertId()
 	c.JSON(w, http.StatusOK, M{
 		"tag": models.Tag{
-			Id:   id,
-			Name: createParams.Name,
+			Id:        id,
+			Name:      createParams.Name,
+			Documents: []int64{},
 		},
 	})
+	return nil
+}
+
+func (c *TagController) Delete(ctx web.C, w http.ResponseWriter, r *http.Request) error {
+	id, err := c.parseIntParam(ctx, "tag_id")
+	if err != nil {
+		return err
+	}
+
+	sql, args, _ := (c.Builder.
+		Delete("tags").
+		Where(squirrel.Eq{"id": id}).
+		ToSql())
+	ret, err := c.DB.Exec(sql, args...)
+	if err != nil {
+		return VError{err, "error deleting tag", 500}
+	}
+	if rows, _ := ret.RowsAffected(); rows == 0 {
+		return VError{err, "tag not found", 404}
+	}
+
+	w.WriteHeader(204)
 	return nil
 }

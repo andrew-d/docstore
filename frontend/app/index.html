@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Docstore</title>
-    <meta name="description" content="document store">
+    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {% if( o.webpack.assetsByChunkName.main instanceof Array ) {
-         var a = o.webpack.assetsByChunkName.main;
-         for( var i = 0; i < a.length; i++ ) {
-            if( a[i].slice(-3) === 'css' ) { %}
-      <link rel="stylesheet" type="text/css" href="/{%= a[i] %}">
-    {% }}} %}
+    {{content-for 'head'}}
+
+    <link rel="stylesheet" href="assets/vendor.css">
+    <link rel="stylesheet" href="assets/docstore.css">
+
+    {{content-for 'head-footer'}}
   </head>
   <body>
-    {% if( o.webpack.assetsByChunkName.main instanceof Array ) { %}
-    <script src="/{%= o.webpack.assetsByChunkName.main[0] %}"></script>
-    {% } else { %}
-    <script src="/{%= o.webpack.assetsByChunkName.main %}"></script>
-    {% } %}
+    {{content-for 'body'}}
+
+    <script src="assets/vendor.js"></script>
+    <script src="assets/docstore.js"></script>
+
+    {{content-for 'body-footer'}}
   </body>
 </html>

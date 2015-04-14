@@ -1,69 +1,45 @@
 {
   "name": "docstore",
-  "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.0",
+  "description": "Small description for docstore goes here",
+  "private": true,
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
   "scripts": {
-    "postinstall": "bower install",
-    "build-prod": "NODE_ENV=production node_modules/.bin/webpack --progress --colors",
-    "build": "node_modules/.bin/webpack --progress --colors",
-    "watch": "node_modules/.bin/webpack --watch --progress --colors",
-    "test": "node --harmony node_modules/jest-cli/bin/jest.js"
+    "start": "ember server",
+    "build": "ember build",
+    "test": "ember test"
   },
-  "author": "Andrew Dunham <andrew@du.nham.ca>",
+  "repository": "",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "author": "",
   "license": "MIT",
-  "dependencies": {
-    "babel": "^4.4.0",
-    "bluebird": "^2.9.12",
-    "immutable": "^3.6.2",
-    "lodash-node": "^3.3.0",
-    "react": "^0.12.2",
-    "react-bootstrap": "^0.15.1",
-    "react-flux": "0.0.19",
-    "react-router": "^0.12.0",
-    "react-router-bootstrap": "^0.9.1",
-    "superagent": "^0.21.0",
-    "superagent-promises": "git+https://github.com/wheresrhys/superagent-promises#e439d401b60d6ec03ed19ef47edb1ad58c773cf1"
-  },
   "devDependencies": {
-    "autoprefixer-loader": "^1.1.0",
-    "babel-core": "^4.4.3",
-    "babel-jest": "^4.0.0",
-    "babel-loader": "^4.0.0",
-    "css-loader": "^0.9.1",
-    "express": "^4.11.2",
-    "extract-text-webpack-plugin": "^0.3.8",
-    "file-loader": "^0.8.1",
-    "html-webpack-plugin": "^1.1.0",
-    "http-proxy": "^1.8.1",
-    "jest-cli": "^0.4.0",
-    "jshint": "^2.6.0",
-    "jshint-loader": "^0.8.2",
-    "morgan": "^1.5.1",
-    "nomnom": "^1.8.1",
-    "react-hot-loader": "^1.1.4",
-    "react-tools": "^0.12.2",
-    "sass-loader": "^0.4.0-beta.1",
-    "style-loader": "^0.8.3",
-    "url-loader": "^0.5.5",
-    "webpack": "^1.5.3",
-    "webpack-dev-server": "^1.7.0",
-    "when": "^3.7.2"
+    "broccoli-asset-rev": "^2.0.0",
+    "broccoli-es3-safe-recast": "^1.0.0",
+    "broccoli-sass": "^0.4.0",
+    "broccoli-static-compiler": "^0.2.1",
+    "ember-cli": "0.2.0",
+    "ember-cli-app-version": "0.3.2",
+    "ember-cli-babel": "^4.0.0",
+    "ember-cli-content-security-policy": "0.3.0",
+    "ember-cli-dependency-checker": "0.0.8",
+    "ember-cli-htmlbars": "0.7.4",
+    "ember-cli-ic-ajax": "0.1.1",
+    "ember-cli-inject-live-reload": "^1.3.0",
+    "ember-cli-pagination": "0.6.6",
+    "ember-cli-qunit": "0.3.9",
+    "ember-cli-uglify": "1.0.1",
+    "ember-data": "1.0.0-beta.15",
+    "ember-export-application-global": "^1.0.2",
+    "express": "^4.8.5",
+    "glob": "^4.0.5"
   },
-  "jest": {
-    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
-    "testFileExtensions": [
-      "es6",
-      "js"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "es6"
-    ],
-    "unmockedModulePathPatterns": [
-      "<rootDir>/node_modules/immutable",
-      "<rootDir>/node_modules/react"
-    ]
+  "dependencies": {
+    "rimraf": "2.2.8"
   }
 }
