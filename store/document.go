@@ -31,6 +31,9 @@ func (s *Store) GetDocumentByName(name string) (models.Document, bool, error) {
 		return models.Document{}, false, err
 	}
 
+	if err := s.db.Model(&d).Related(&d.Files).Error; err != nil {
+		return models.Document{}, false, nil
+	}
 	return d, true, nil
 }
 
@@ -45,6 +48,9 @@ func (s *Store) GetDocumentById(id int64) (models.Document, bool, error) {
 		return models.Document{}, false, err
 	}
 
+	if err := s.db.Model(&d).Related(&d.Files).Error; err != nil {
+		return models.Document{}, false, nil
+	}
 	return d, true, nil
 }
 
