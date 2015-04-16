@@ -1,0 +1,20 @@
+{
+package query
+}
+
+Query <- _  terms:Term+ EOF {
+    var a AST = 1
+    return &a, nil
+}
+
+Term <- ( AndTerm / OrTerm ) _ {
+    return "", nil
+}
+
+AndTerm <- "AND"
+
+OrTerm <- "OR"
+
+_ "whitespace" <- [ \t\r\n]*
+
+EOF <- !.
