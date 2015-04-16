@@ -82,6 +82,7 @@ func wrapCommand(f CommandFunc) func(*cobra.Command, []string) {
 		if err != nil {
 			log.WithField("err", err).Fatal("Could not open store")
 		}
+		defer st.Close()
 
 		f(cmd, args, st)
 	}
@@ -92,10 +93,11 @@ func runList(cmd *cobra.Command, args []string, store *store.Store) {
 }
 
 func runInit(cmd *cobra.Command, args []string) {
-	_, err := store.New(flagStoreLocation)
+	st, err := store.New(flagStoreLocation)
 	if err != nil {
 		log.WithField("err", err).Error("Could not initialize docstore")
 	} else {
 		log.Info("Successfully initialized docstore")
+		st.Close()
 	}
 }

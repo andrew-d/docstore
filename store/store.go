@@ -3,8 +3,10 @@ package store
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/jinzhu/gorm"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/andrew-d/docstore/store/models"
 )
@@ -15,7 +17,7 @@ var (
 
 type Store struct {
 	path string
-	db   *gorm.DB
+	db   gorm.DB
 }
 
 func New(path string) (*Store, error) {
@@ -32,10 +34,17 @@ func New(path string) (*Store, error) {
 		return nil, err
 	}
 
-	// TODO: create things in dir
-	_ = models.Tag{}
+	db, err := gorm.Open("sqlite3", filepath.Join(path, "docstore.sqlite3"))
+	if err != nil {
+		return nil, err
+	}
+
+	// Create models in the database.
+	db.AutoMigrate(&models.Tag{}, &models.File{}, &models.Document{})
+
 	ret := &Store{
 		path: path,
+		db:   db,
 	}
 	return ret, nil
 }
@@ -46,9 +55,18 @@ func Open(path string) (*Store, error) {
 		return nil, err
 	}
 
-	// TODO: open things in dir
+	db, err := gorm.Open("sqlite3", filepath.Join(path, "docstore.sqlite3"))
+	if err != nil {
+		return nil, err
+	}
+
 	ret := &Store{
 		path: path,
+		db:   db,
 	}
 	return ret, nil
+}
+
+func (s *Store) Close() error {
+	return s.db.Close()
 }
