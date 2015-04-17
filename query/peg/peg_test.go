@@ -19,6 +19,10 @@ func TestParse(t *testing.T) {
 		{`negative hex number`, `-0xbcd1`, &TextNode{NodeType: NodeText, Text: fmt.Sprint(-0xbcd1)}},
 		{`literal`, `asdf`, &TextNode{NodeType: NodeText, Text: `asdf`}},
 		{`quoted string`, `"foo bar baz"`, &TextNode{NodeType: NodeText, Text: `"foo bar baz"`}},
+
+		{`spaces around number`, ` 1234 `, &TextNode{NodeType: NodeText, Text: `1234`}},
+		{`spaces around literal`, ` asdf `, &TextNode{NodeType: NodeText, Text: `asdf`}},
+
 		{`simple AND`, `one AND two`, &AndNode{
 			NodeType: NodeAnd,
 			Left:     &TextNode{NodeType: NodeText, Text: `one`},
@@ -28,6 +32,17 @@ func TestParse(t *testing.T) {
 			NodeType: NodeOr,
 			Left:     &TextNode{NodeType: NodeText, Text: `one`},
 			Right:    &TextNode{NodeType: NodeText, Text: `two`},
+		}},
+		{`simple NOT`, `NOT one`, &NotNode{
+			NodeType: NodeNot,
+			Node:     &TextNode{NodeType: NodeText, Text: `one`},
+		}},
+		{`double NOT`, `NOT NOT one`, &NotNode{
+			NodeType: NodeNot,
+			Node: &NotNode{
+				NodeType: NodeNot,
+				Node:     &TextNode{NodeType: NodeText, Text: `one`},
+			},
 		}},
 		{`AND followed by NOT`, `one AND NOT two`, &AndNode{
 			NodeType: NodeAnd,
@@ -75,6 +90,8 @@ func TestParse(t *testing.T) {
 			},
 		}},
 	}
+
+	Memoize(true)
 
 	t.Logf("Running %d test cases...", len(tcases))
 	for i, tcase := range tcases {
