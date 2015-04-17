@@ -9,7 +9,7 @@
 	}
 }
 
-Input <- expr:Expr EOF {
+Input <- _ expr:Expr EOF {
 	debugf("Input: returning expr %#v", expr)
 	return expr, nil
 }
