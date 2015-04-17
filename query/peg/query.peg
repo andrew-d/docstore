@@ -1,0 +1,92 @@
+{
+	package peg
+
+	func debugf(format string, args ...interface{}) {
+		if !strings.HasSuffix(format, "\n") {
+			format = format + "\n"
+		}
+		// fmt.Printf(format, args...)
+	}
+}
+
+Input <- expr:Expr EOF {
+	debugf("Input: returning expr %#v", expr)
+	return expr, nil
+}
+
+Expr <- expr:OrExpr _ {
+	return expr, nil
+}
+
+OrExpr <- one:AndExpr _ "OR" _ two:AndExpr _ {
+	var n Node = newOrNode(one.(Node), two.(Node))
+	debugf("OR: returning node %#v", n)
+	return n, nil
+} / expr:AndExpr _ {
+	debugf("OR: returning expr %#v", expr)
+	return expr, nil
+}
+
+AndExpr <- one:NotExpr _ "AND" _ two:NotExpr _ {
+	var n Node = newAndNode(one.(Node), two.(Node))
+	debugf("AND: returning node %#v", n)
+	return n, nil
+} / expr:NotExpr _ {
+	debugf("AND: returning expr %#v", expr)
+	return expr, nil
+}
+
+NotExpr <- "NOT" _ one:SimpleExpr _ {
+	var n Node = newNotNode(one.(Node))
+	debugf("NOT: returning node %#v", n)
+	return n, nil
+} / expr:SimpleExpr {
+	debugf("NOT: returning expr %#v", expr)
+	return expr, nil
+}
+
+SimpleExpr <- '(' _ expr:Expr _ ')' _ {
+	debugf("Simple: returning braced expr %#v", expr)
+	return expr, nil
+} / lit:Literal _ {
+	debugf("Simple: returning literal %#v", lit)
+	return lit, nil
+}
+
+Literal <- text:Text {
+	debugf(`Literal: returning text "%s"`, text.(string))
+	return newTextNode(text.(string)), nil
+} / quot:Quoted {
+	// TODO: unquote
+	debugf("Literal: returning quoted string `%s`", quot.(string))
+	return newTextNode(quot.(string)), nil
+} / num:Number {
+	debugf("Literal: returning number %d", num.(int64))
+	return newTextNode(fmt.Sprint(num.(int64))), nil
+}
+
+Text <- [a-zA-Z_][a-zA-Z0-9_'-]* {
+	return string(c.text), nil
+}
+
+Quoted <- `"` [^"]* `"` {
+	return string(c.text), nil
+}
+
+Number <- hexint:HexInteger {
+	return hexint, nil
+} / integer:Integer {
+	return integer, nil
+}
+
+HexInteger <- '-'? '0' [xX] [0-9a-fA-F]+ {
+	return strconv.ParseInt(string(c.text), 0, 0)
+}
+
+Integer <- '-'? [0-9]+ {
+	return strconv.ParseInt(string(c.text), 10, 0)
+}
+
+_ "whitespace" <- [ \t]*
+
+EOF <- !.
