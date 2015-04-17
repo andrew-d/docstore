@@ -6,8 +6,8 @@ import (
 
 var eof = rune(0)
 
-// Map of literal strings to keywords
-var keywords = map[string]TokenType{
+// Map of literal strings to operators
+var operators = map[string]TokenType{
 	"AND": TokenAnd,
 	"OR":  TokenOr,
 }

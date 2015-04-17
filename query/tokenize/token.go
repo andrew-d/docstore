@@ -24,7 +24,7 @@ func (t Token) String() string {
 		return "EOF"
 	case t.Type == TokenError:
 		return t.Val
-	case t.Type > TokenKeyword:
+	case t.Type > TokenOperator:
 		return fmt.Sprintf("<%s>", t.Val)
 	case len(t.Val) > 10:
 		return fmt.Sprintf("%.10q...", t.Val)
@@ -44,8 +44,8 @@ const (
 	TokenSpace                       // Run of whitespace
 	TokenString                      // Quoted string (including quotes)
 	TokenText                        // Plain text
-	// Keywords appear after the rest
-	TokenKeyword // Delimiter only
-	TokenAnd     // 'and' keyword
-	TokenOr      // 'or' keyword
+	// Operators appear after the rest
+	TokenOperator // Delimiter only
+	TokenAnd      // 'and' operator
+	TokenOr       // 'or' operator
 )

@@ -80,8 +80,8 @@ Loop:
 			}
 
 			switch {
-			case keywords[word] > TokenKeyword:
-				s.emit(keywords[word])
+			case operators[word] > TokenOperator:
+				s.emit(operators[word])
 
 			default:
 				s.emit(TokenText)
