@@ -65,6 +65,15 @@ func TestParse(t *testing.T) {
 			},
 			Right: &TextNode{NodeType: NodeText, Text: `three`},
 		}},
+		{`braces take precedence`, `one AND (two OR three)`, &AndNode{
+			NodeType: NodeAnd,
+			Left:     &TextNode{NodeType: NodeText, Text: `one`},
+			Right: &OrNode{
+				NodeType: NodeOr,
+				Left:     &TextNode{NodeType: NodeText, Text: `two`},
+				Right:    &TextNode{NodeType: NodeText, Text: `three`},
+			},
+		}},
 	}
 
 	t.Logf("Running %d test cases...", len(tcases))
