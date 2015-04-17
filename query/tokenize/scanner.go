@@ -15,7 +15,7 @@ type Scanner struct {
 	pos        Pos        // Current position in the input
 	start      Pos        // Start position of this token
 	width      Pos        // Width of the last rune read from the input
-	lastPos    Pos        // Position of the most recent token returned by nextToken
+	lastPos    Pos        // Position of the most recent token returned by NextToken
 	tokens     chan Token // Channel of scanned tokens
 	parenDepth int        // Nesting depth of '()' expressions
 }
@@ -86,8 +86,8 @@ func (s *Scanner) errorf(format string, args ...interface{}) stateFn {
 	return nil
 }
 
-// nextToken returns the next token from the input
-func (s *Scanner) nextToken() Token {
+// NextToken returns the next token from the input
+func (s *Scanner) NextToken() Token {
 	tok := <-s.tokens
 	s.lastPos = tok.Pos
 	return tok

@@ -10,7 +10,7 @@ func allTokens(str string) []Token {
 	s := NewScanner(str)
 	toks := []Token{}
 	for {
-		curr := s.nextToken()
+		curr := s.NextToken()
 		curr.Pos = 0 // TODO: do this?
 		toks = append(toks, curr)
 		if curr.Type == TokenEOF || curr.Type == TokenError {
