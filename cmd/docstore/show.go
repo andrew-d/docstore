@@ -13,7 +13,7 @@ import (
 
 var (
 	showDocumentCmd = &cobra.Command{
-		Use:     "document",
+		Use:     "document <id or name>",
 		Aliases: []string{"doc"},
 		Short:   "Show a single document, given either an ID or a name",
 		Run:     wrapCommand(runShowDocument),
@@ -27,6 +27,7 @@ func init() {
 func runShowDocument(cmd *cobra.Command, args []string, store *store.Store) {
 	if len(args) != 1 {
 		log.Error("Command takes exactly one argument")
+		cmd.Help()
 		return
 	}
 
@@ -44,12 +45,12 @@ func runShowDocument(cmd *cobra.Command, args []string, store *store.Store) {
 		d, found, err = store.GetDocumentByName(args[0])
 	}
 
-	if !found {
-		log.Info("Document not found")
-		return
-	}
 	if err != nil {
 		log.WithField("err", err).Error("Error fetching document")
+		return
+	}
+	if !found {
+		log.Info("Document not found")
 		return
 	}
 
