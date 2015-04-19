@@ -4,15 +4,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 )
 
+var _ = fmt.Println
+
 func TestParse(t *testing.T) {
-	tcases := []struct {
+	type testSpec struct {
 		Name     string
 		Input    string
 		Expected Node
-	}{
+	}
+
+	tcases := []testSpec{
 		{`number`, `1234`, &TextNode{NodeType: NodeText, Text: `1234`}},
 		{`hex number`, `0x123e`, &TextNode{NodeType: NodeText, Text: fmt.Sprint(0x123e)}},
 		{`negative number`, `-5678`, &TextNode{NodeType: NodeText, Text: `-5678`}},
@@ -37,6 +42,7 @@ func TestParse(t *testing.T) {
 			NodeType: NodeNot,
 			Node:     &TextNode{NodeType: NodeText, Text: `one`},
 		}},
+
 		{`double NOT`, `NOT NOT one`, &NotNode{
 			NodeType: NodeNot,
 			Node: &NotNode{
@@ -60,26 +66,6 @@ func TestParse(t *testing.T) {
 				Node:     &TextNode{NodeType: NodeText, Text: `two`},
 			},
 		}},
-		/*
-			{`chained AND`, `one AND two AND three`, &AndNode{
-				NodeType: NodeAnd,
-				Left: &AndNode{
-					NodeType: NodeAnd,
-					Left:     &TextNode{NodeType: NodeText, Text: `one`},
-					Right:    &TextNode{NodeType: NodeText, Text: `two`},
-				},
-				Right: &TextNode{NodeType: NodeText, Text: `two`},
-			}},
-		*/
-		{`AND takes precedence over OR`, `one AND two OR three`, &OrNode{
-			NodeType: NodeOr,
-			Left: &AndNode{
-				NodeType: NodeAnd,
-				Left:     &TextNode{NodeType: NodeText, Text: `one`},
-				Right:    &TextNode{NodeType: NodeText, Text: `two`},
-			},
-			Right: &TextNode{NodeType: NodeText, Text: `three`},
-		}},
 		{`braces take precedence`, `one AND (two OR three)`, &AndNode{
 			NodeType: NodeAnd,
 			Left:     &TextNode{NodeType: NodeText, Text: `one`},
@@ -89,16 +75,44 @@ func TestParse(t *testing.T) {
 				Right:    &TextNode{NodeType: NodeText, Text: `three`},
 			},
 		}},
+		{`chained AND`, `one AND two AND three`, &AndNode{
+			NodeType: NodeAnd,
+			Left:     &TextNode{NodeType: NodeText, Text: `one`},
+			Right: &AndNode{
+				NodeType: NodeAnd,
+				Left:     &TextNode{NodeType: NodeText, Text: `two`},
+				Right:    &TextNode{NodeType: NodeText, Text: `three`},
+			},
+		}},
 	}
 
 	Memoize(true)
+	spew.Config.DisableMethods = true
+
+	runTest := func(i int, tcase testSpec) {
+		output, err := Parse(tcase.Name, []byte(tcase.Input))
+		if assert.NoError(t, err, "%d: case '%s' should have matched", i, tcase.Name) {
+			if !assert.Equal(t, tcase.Expected, output,
+				"%d: case '%s' did not equal expected output", i, tcase.Name) {
+				t.Logf("Dumping actual output")
+				spew.Dump(output)
+			}
+		}
+	}
+
+	// Check for 'only' rules
+	only := ``
+	for i, tcase := range tcases {
+		if tcase.Name == only {
+			t.Logf("%d: Only running test case '%s'", i, tcase.Name)
+			runTest(i, tcase)
+			return
+		}
+	}
 
 	t.Logf("Running %d test cases...", len(tcases))
 	for i, tcase := range tcases {
-		output, err := Parse(tcase.Name, []byte(tcase.Input))
-		assert.NoError(t, err)
-		assert.Equal(t, tcase.Expected, output,
-			"case '%s' (%d): did not match", tcase.Name, i)
+		runTest(i, tcase)
 	}
 	t.Logf("Ran %d test cases", len(tcases))
 }

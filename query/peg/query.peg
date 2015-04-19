@@ -5,7 +5,7 @@
 		if !strings.HasSuffix(format, "\n") {
 			format = format + "\n"
 		}
-		// fmt.Printf(format, args...)
+		//fmt.Printf(format, args...)
 	}
 }
 
@@ -14,43 +14,43 @@ Input <- _ expr:Expr EOF {
 	return expr, nil
 }
 
-Expr <- expr:OrExpr _ {
-	return expr, nil
+Expr <- e1:AndExpr {
+    return e1, nil
 }
 
-OrExpr <- one:AndExpr _ "OR" _ two:AndExpr _ {
-	var n Node = newOrNode(one.(Node), two.(Node))
-	debugf("OR: returning node %#v", n)
-	return n, nil
-} / expr:AndExpr _ {
-	debugf("OR: returning expr %#v", expr)
-	return expr, nil
+AndExpr <- e1:OrExpr "AND" _ e2:Expr {
+    n := newAndNode(e1.(Node), e2.(Node))
+    debugf("AndExpr: building AND: %#v", n)
+    return n, nil
+} / e1:OrExpr {
+    debugf("AndExpr: returning expr: %#v", e1)
+    return e1, nil
 }
 
-AndExpr <- one:NotExpr _ "AND" _ two:NotExpr _ {
-	var n Node = newAndNode(one.(Node), two.(Node))
-	debugf("AND: returning node %#v", n)
-	return n, nil
-} / expr:NotExpr _ {
-	debugf("AND: returning expr %#v", expr)
-	return expr, nil
+OrExpr <- e1:NotExpr "OR" _ e2:Expr {
+    n := newOrNode(e1.(Node), e2.(Node))
+    debugf("OrExpr: building OR: %#v", n)
+    return n, nil
+} / e1:NotExpr {
+    debugf("OrExpr: returning expr: %#v", e1)
+    return e1, nil
 }
 
-NotExpr <- "NOT" _ one:SimpleExpr _ {
-	var n Node = newNotNode(one.(Node))
-	debugf("NOT: returning node %#v", n)
-	return n, nil
-} / expr:SimpleExpr {
-	debugf("NOT: returning expr %#v", expr)
-	return expr, nil
+NotExpr <- "NOT" _ e1:Expr {
+    n := newNotNode(e1.(Node))
+    debugf("NotExpr: building NOT: %#v", n)
+    return n, nil
+} / e1:BracedExpr {
+    debugf("NotExpr: returning expr: %#v", e1)
+    return e1, nil
 }
 
-SimpleExpr <- '(' _ expr:Expr _ ')' _ {
-	debugf("Simple: returning braced expr %#v", expr)
-	return expr, nil
-} / lit:Literal _ {
-	debugf("Simple: returning literal %#v", lit)
-	return lit, nil
+BracedExpr <- "(" _ e1:Expr _ ")"_ {
+    debugf("BracedExpr: returning expr: %#v", e1)
+    return e1, nil
+} / l:Literal _ {
+    debugf("BracedExpr: returning literal: %#v", l)
+    return l, nil
 }
 
 Literal <- text:Text {

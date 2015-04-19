@@ -52,7 +52,7 @@ type AndNode struct {
 	Right Node
 }
 
-func newAndNode(left, right Node) *AndNode {
+func newAndNode(left, right Node) Node {
 	return &AndNode{Left: left, Right: right, NodeType: NodeAnd}
 }
 
@@ -63,7 +63,7 @@ type OrNode struct {
 	Right Node
 }
 
-func newOrNode(left, right Node) *OrNode {
+func newOrNode(left, right Node) Node {
 	return &OrNode{Left: left, Right: right, NodeType: NodeOr}
 }
 
@@ -73,6 +73,6 @@ type NotNode struct {
 	Node Node
 }
 
-func newNotNode(n Node) *NotNode {
+func newNotNode(n Node) Node {
 	return &NotNode{Node: n, NodeType: NodeNot}
 }
