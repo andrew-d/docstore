@@ -17,6 +17,14 @@ var (
 		Short: "docstore is a way of saving, tagging, and organizing your documents",
 	}
 
+	addCmd = &cobra.Command{
+		Use:   "add",
+		Short: "Add new documents or files to the store",
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.Help()
+		},
+	}
+
 	initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize a new document store",
@@ -60,6 +68,7 @@ func Run() {
 	// We defer adding top-level commands here so subcommands can register their
 	// corresponding subcommands first (since init() functions execute in no
 	// defined order).
+	mainCmd.AddCommand(addCmd)
 	mainCmd.AddCommand(initCmd)
 	mainCmd.AddCommand(listCmd)
 	mainCmd.AddCommand(showCmd)
