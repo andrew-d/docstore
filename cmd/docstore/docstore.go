@@ -1,6 +1,7 @@
 package docstore
 
 import (
+	"os"
 	"os/user"
 	"path/filepath"
 
@@ -51,6 +52,8 @@ func init() {
 	mainCmd.PersistentFlags().BoolVarP(&flagQuiet, "quiet", "q", false, "quiet output")
 	mainCmd.PersistentFlags().StringVar(&flagStoreLocation, "path",
 		filepath.Join(usr.HomeDir, ".docstore"), "location of the document store")
+
+	log.Out = os.Stderr
 }
 
 func Run() {
