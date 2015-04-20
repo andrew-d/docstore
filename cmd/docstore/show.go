@@ -46,9 +46,11 @@ func runShowDocument(cmd *cobra.Command, args []string, store *store.Store) {
 		err   error
 	)
 
-	if id, err = strconv.ParseUint(args[0], 10, 64); err != nil {
+	if id, err = strconv.ParseUint(args[0], 10, 64); err == nil {
+		log.Debug("Document specifier is numeric")
 		d, found, err = store.GetDocumentById(int64(id))
 	} else {
+		log.Debug("Document specifier is a string")
 		d, found, err = store.GetDocumentByName(args[0])
 	}
 
