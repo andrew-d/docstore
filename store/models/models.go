@@ -8,6 +8,7 @@ type Tag struct {
 type File struct {
 	ID         int64  `json:"id"`
 	Hash       string `json:"hash"`
+	Filename   string `json:"filename"`
 	DocumentID int64  `json:"document_id"`
 }
 
