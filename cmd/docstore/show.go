@@ -24,9 +24,14 @@ var (
 		Short: "Show a single tag, given either an ID or a name",
 		Run:   wrapCommand(runShowTag),
 	}
+
+	flagShowFormat string
 )
 
 func init() {
+	showDocumentCmd.Flags().StringVar(&flagShowFormat, "format", "",
+		"output format to use - will use default if not set")
+
 	showCmd.AddCommand(showDocumentCmd)
 	showCmd.AddCommand(showTagCmd)
 }
@@ -38,12 +43,21 @@ func runShowDocument(cmd *cobra.Command, args []string, store *store.Store) {
 		return
 	}
 
+	if len(flagShowFormat) == 0 {
+		flagShowFormat = "Document {{.ID}} - {{.Name}} - {{len .Files}} file(s)\n"
+	}
+
+	tmpl, err := ParseFormat(flagShowFormat)
+	if err != nil {
+		log.WithField("err", err).Error("Invalid format")
+		return
+	}
+
 	// Is this a number or a string?
 	var (
 		id    uint64
 		d     models.Document
 		found bool
-		err   error
 	)
 
 	if id, err = strconv.ParseUint(args[0], 10, 64); err == nil {
@@ -63,8 +77,10 @@ func runShowDocument(cmd *cobra.Command, args []string, store *store.Store) {
 		return
 	}
 
-	// TODO: print in a real format?
-	json.NewEncoder(os.Stdout).Encode(&d)
+	err = tmpl.Execute(os.Stdout, d)
+	if err != nil {
+		log.WithField("err", err).Error("Error rendering show template")
+	}
 }
 
 func runShowTag(cmd *cobra.Command, args []string, store *store.Store) {
@@ -74,12 +90,22 @@ func runShowTag(cmd *cobra.Command, args []string, store *store.Store) {
 		return
 	}
 
+	if len(flagShowFormat) == 0 {
+		// TODO: number of documents
+		flagShowFormat = "Tag {{.ID}} - {{.Name}\n"
+	}
+
+	tmpl, err := ParseFormat(flagShowFormat)
+	if err != nil {
+		log.WithField("err", err).Error("Invalid format")
+		return
+	}
+
 	// Is this a number or a string?
 	var (
 		id    uint64
 		t     models.Tag
 		found bool
-		err   error
 	)
 
 	if id, err = strconv.ParseUint(args[0], 10, 64); err != nil {
@@ -97,6 +123,8 @@ func runShowTag(cmd *cobra.Command, args []string, store *store.Store) {
 		return
 	}
 
-	// TODO: print in a real format?
-	json.NewEncoder(os.Stdout).Encode(&t)
+	err = tmpl.Execute(os.Stdout, d)
+	if err != nil {
+		log.WithField("err", err).Error("Error rendering show template")
+	}
 }
