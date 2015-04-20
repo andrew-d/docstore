@@ -29,7 +29,7 @@ func New(path string) (*Store, error) {
 	}
 
 	// Make the directory
-	err = os.Mkdir(path, 0600)
+	err = os.Mkdir(path, 0700)
 	if err != nil {
 		return nil, err
 	}
