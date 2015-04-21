@@ -92,7 +92,7 @@ func runShowTag(cmd *cobra.Command, args []string, store *store.Store) {
 
 	if len(flagShowFormat) == 0 {
 		// TODO: number of documents
-		flagShowFormat = "Tag {{.ID}} - {{.Name}\n"
+		flagShowFormat = "Tag {{.ID}} - {{.Name}}\n"
 	}
 
 	tmpl, err := ParseFormat(flagShowFormat)
