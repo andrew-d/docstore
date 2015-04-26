@@ -23,7 +23,8 @@ func TestParse(t *testing.T) {
 		{`negative number`, `-5678`, &TextNode{NodeType: NodeText, Text: `-5678`}},
 		{`negative hex number`, `-0xbcd1`, &TextNode{NodeType: NodeText, Text: fmt.Sprint(-0xbcd1)}},
 		{`literal`, `asdf`, &TextNode{NodeType: NodeText, Text: `asdf`}},
-		{`quoted string`, `"foo bar baz"`, &TextNode{NodeType: NodeText, Text: `"foo bar baz"`}},
+		{`quoted string`, `"foo bar baz"`, &TextNode{NodeType: NodeText, Text: `foo bar baz`}},
+		{`quoted string with escape`, `"foo\u0020bar"`, &TextNode{NodeType: NodeText, Text: `foo bar`}},
 
 		{`spaces around number`, ` 1234 `, &TextNode{NodeType: NodeText, Text: `1234`}},
 		{`spaces around literal`, ` asdf `, &TextNode{NodeType: NodeText, Text: `asdf`}},
