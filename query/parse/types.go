@@ -1,19 +1,4 @@
-package parse
-
-import (
-	"github.com/andrew-d/docstore/query/tokenize"
-)
-
-type Node interface {
-	Type() NodeType
-	Position() Pos
-}
-
-type Pos tokenize.Pos
-
-func (p Pos) Position() Pos {
-	return p
-}
+package peg
 
 type NodeType int
 
@@ -21,44 +6,73 @@ func (t NodeType) Type() NodeType {
 	return t
 }
 
+func (t NodeType) String() string {
+	switch t {
+	case NodeInvalid:
+		return "<INVALID>"
+	case NodeAnd:
+		return "<AND>"
+	case NodeOr:
+		return "<OR>"
+	case NodeNot:
+		return "<NOT>"
+	case NodeText:
+		return "<TEXT>"
+	default:
+		return "<UNKNOWN>"
+	}
+}
+
 const (
-	NodeText    NodeType = iota // A single chunk of text
-	NodeSubExpr                 // A parenthesized subexpression
-	NodeAnd                     // An AND node
-	NodeOr                      // An OR node
+	NodeInvalid NodeType = iota
+	NodeText
+	NodeAnd
+	NodeOr
+	NodeNot
 )
+
+type Node interface {
+	Type() NodeType
+}
 
 type TextNode struct {
 	NodeType
-	Pos
 
 	Text string
 }
 
-func (p *Parser) newText(pos Pos, text string) *TextNode {
-	return &TextNode{Text: text, NodeType: NodeText, Pos: pos}
+func newTextNode(t string) *TextNode {
+	return &TextNode{Text: t, NodeType: NodeText}
 }
 
 type AndNode struct {
 	NodeType
-	Pos
 
 	Left  Node
 	Right Node
 }
 
-func (p *Parser) newAnd(pos Pos) *AndNode {
-	return &AndNode{NodeType: NodeAnd, Pos: pos}
+func newAndNode(left, right Node) Node {
+	return &AndNode{Left: left, Right: right, NodeType: NodeAnd}
 }
 
 type OrNode struct {
 	NodeType
-	Pos
 
 	Left  Node
 	Right Node
 }
 
-func (p *Parser) newOr(pos Pos) *OrNode {
-	return &OrNode{NodeType: NodeOr, Pos: pos}
+func newOrNode(left, right Node) Node {
+	return &OrNode{Left: left, Right: right, NodeType: NodeOr}
+}
+
+type NotNode struct {
+	NodeType
+
+	Node Node
+}
+
+func newNotNode(n Node) Node {
+	return &NotNode{Node: n, NodeType: NodeNot}
 }
