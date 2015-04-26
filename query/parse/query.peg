@@ -1,5 +1,5 @@
 {
-	package peg
+	package parse
 
 	import (
 		"strconv"

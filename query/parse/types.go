@@ -1,4 +1,4 @@
-package peg
+package parse
 
 type NodeType int
 

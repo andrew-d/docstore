@@ -1,4 +1,4 @@
-package peg
+package parse
 
 import (
 	"bytes"
