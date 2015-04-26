@@ -1,6 +1,10 @@
 {
 	package peg
 
+	import (
+		"strconv"
+	)
+
 	func debugf(format string, args ...interface{}) {
 		if !strings.HasSuffix(format, "\n") {
 			format = format + "\n"
@@ -57,9 +61,13 @@ Literal <- text:Text {
 	debugf(`Literal: returning text "%s"`, text.(string))
 	return newTextNode(text.(string)), nil
 } / quot:Quoted {
-	// TODO: unquote
-	debugf("Literal: returning quoted string `%s`", quot.(string))
-	return newTextNode(quot.(string)), nil
+	unquoted, err := strconv.Unquote(quot.(string))
+	if err != nil {
+		return nil, err
+	}
+
+	debugf("Literal: returning quoted string %#v", unquoted)
+	return newTextNode(unquoted), nil
 } / num:Number {
 	debugf("Literal: returning number %d", num.(int64))
 	return newTextNode(fmt.Sprint(num.(int64))), nil
