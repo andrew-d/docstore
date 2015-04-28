@@ -10,7 +10,12 @@ func NodesToSQL(root parse.Node, defaultField string) (sql string, args []interf
 	traverse = func(node parse.Node) (string, []interface{}) {
 		switch v := node.(type) {
 		case *parse.TextNode:
-			return defaultField + " = ?", []interface{}{v.Text}
+			fname := v.Field
+			if fname == "" {
+				fname = defaultField
+			}
+
+			return fname + " = ?", []interface{}{v.Text}
 
 		case *parse.OrNode:
 			leftSql, leftArgs := traverse(v.Left)

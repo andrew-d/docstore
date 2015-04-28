@@ -18,6 +18,10 @@ func TestNodesToSQL(t *testing.T) {
 		{`simple value`, "default = ?", []interface{}{"foo"}, &parse.TextNode{
 			Text: "foo",
 		}},
+		{`value with field`, "myfield = ?", []interface{}{"foo"}, &parse.TextNode{
+			Field: "myfield",
+			Text:  "foo",
+		}},
 		{`simple OR`, "(default = ?) OR (default = ?)", []interface{}{"foo", "bar"}, &parse.OrNode{
 			Left:  &parse.TextNode{Text: "foo"},
 			Right: &parse.TextNode{Text: "bar"},

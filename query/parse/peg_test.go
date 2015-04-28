@@ -26,6 +26,11 @@ func TestParse(t *testing.T) {
 		{`quoted string`, `"foo bar baz"`, &TextNode{NodeType: NodeText, Text: `foo bar baz`}},
 		{`quoted string with escape`, `"foo\u0020bar"`, &TextNode{NodeType: NodeText, Text: `foo bar`}},
 
+		{`field name with literal`, `foo:bar`, &TextNode{NodeType: NodeText, Field: "foo", Text: "bar"}},
+		{`field name with number`, `foo:1234`, &TextNode{NodeType: NodeText, Field: "foo", Text: "1234"}},
+		{`field name with quoted literal`, `foo:"bar baz"`,
+			&TextNode{NodeType: NodeText, Field: "foo", Text: "bar baz"}},
+
 		{`spaces around number`, ` 1234 `, &TextNode{NodeType: NodeText, Text: `1234`}},
 		{`spaces around literal`, ` asdf `, &TextNode{NodeType: NodeText, Text: `asdf`}},
 

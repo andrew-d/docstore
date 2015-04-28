@@ -52,14 +52,26 @@ NotExpr <- "NOT" _ e1:Expr {
 BracedExpr <- "(" _ e1:Expr _ ")"_ {
     debugf("BracedExpr: returning expr: %#v", e1)
     return e1, nil
-} / l:Literal _ {
-    debugf("BracedExpr: returning literal: %#v", l)
-    return l, nil
+} / f:FieldExpr _ {
+    debugf("BracedExpr: returning field expr: %#v", f)
+    return f, nil
+}
+
+FieldExpr <- fname:FieldName ":" lit:Literal {
+	debugf("FieldExpr: returning field text: %#v / %#v", fname, lit)
+	return newTextNode(fname.(string), lit.(string)), nil
+} / lit:Literal {
+	debugf("FieldExpr: returning bare text: %#v", lit)
+	return newTextNode("", lit.(string)), nil
+}
+
+FieldName <- [a-zA-Z]+ {
+	return string(c.text), nil
 }
 
 Literal <- text:Text {
 	debugf(`Literal: returning text "%s"`, text.(string))
-	return newTextNode(text.(string)), nil
+	return text.(string), nil
 } / quot:Quoted {
 	unquoted, err := strconv.Unquote(quot.(string))
 	if err != nil {
@@ -67,10 +79,10 @@ Literal <- text:Text {
 	}
 
 	debugf("Literal: returning quoted string %#v", unquoted)
-	return newTextNode(unquoted), nil
+	return unquoted, nil
 } / num:Number {
 	debugf("Literal: returning number %d", num.(int64))
-	return newTextNode(fmt.Sprint(num.(int64))), nil
+	return fmt.Sprint(num.(int64)), nil
 }
 
 Text <- [a-zA-Z_][a-zA-Z0-9_'-]* {

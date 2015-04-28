@@ -38,11 +38,12 @@ type Node interface {
 type TextNode struct {
 	NodeType
 
-	Text string
+	Field string
+	Text  string
 }
 
-func newTextNode(t string) *TextNode {
-	return &TextNode{Text: t, NodeType: NodeText}
+func newTextNode(field, txt string) *TextNode {
+	return &TextNode{Field: field, Text: txt, NodeType: NodeText}
 }
 
 type AndNode struct {
