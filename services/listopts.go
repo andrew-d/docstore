@@ -7,10 +7,12 @@ const DefaultPerPage = 10
 // ListOptions specifies general pagination options for fetching a list of
 // results.
 type ListOptions struct {
-	PerPage int `url:"per_page,omitempty" json:"per_page,omitempty"`
-	Page    int `url:"page,omitempty" json:"page,omitempty"`
+	PerPage int `url:"per_page,omitempty" schema: "per_page" json:"per_page,omitempty"`
+	Page    int `url:"page,omitempty" schema: "page" json:"page,omitempty"`
 }
 
+// PageOrDefault returns the page number, or 1 if the value was not set or
+// is invalid.
 func (o ListOptions) PageOrDefault() int {
 	if o.Page <= 0 {
 		return 1
@@ -19,6 +21,8 @@ func (o ListOptions) PageOrDefault() int {
 	return o.Page
 }
 
+// PerPageOrDefault returns the number of items per page, or DefaultPerPage if
+// the value was not set or is invalid.
 func (o ListOptions) PerPageOrDefault() int {
 	if o.PerPage <= 0 {
 		return DefaultPerPage
