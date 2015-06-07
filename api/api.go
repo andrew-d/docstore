@@ -3,23 +3,31 @@ package api
 import (
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 	"github.com/justinas/alice"
-	renderpkg "github.com/unrolled/render"
 
 	"github.com/andrew-d/docstore/router"
 	"github.com/andrew-d/docstore/services"
 )
 
-var render = renderpkg.New(renderpkg.Options{
-	IndentJSON: true,
-})
+var (
+	log = logrus.New().WithField("package", "github.com/andrew-d/docstore/api")
+)
 
 type APIServices struct {
 	Documents services.DocumentsService
+
+	Decoder *schema.Decoder
 }
 
 func Make(s *APIServices) *mux.Router {
+	// Default services.
+	if s.Decoder != nil {
+		s.Decoder = schema.NewDecoder()
+	}
+
 	// TODO: more middleware?
 	mw := alice.New(jsonMiddleware)
 
