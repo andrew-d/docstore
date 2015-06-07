@@ -61,12 +61,13 @@ func startAPI() error {
 	var _ = datastore.Create
 
 	// Create the API router
-	// TODO
-	var _ = api.Make
+	router := api.Make(&api.APIServices{
+		Documents: nil, // TODO
+	})
 
 	// Start serving it
 	addr := "localhost:3002"
-	serveGracefully(addr, nil)
+	serveGracefully(addr, router)
 	log.WithField("addr", addr).Info("started API server")
 	return nil
 }
@@ -101,6 +102,7 @@ func serveGracefully(addr string, handler http.Handler) {
 	wg.Add(1)
 	go func() {
 		<-shutdown
+		log.WithField("addr", addr).Info("telling server to stop...")
 		srv.Stop(Timeout)
 		wg.Done()
 	}()
@@ -109,7 +111,9 @@ func serveGracefully(addr string, handler http.Handler) {
 	wg.Add(1)
 	go func() {
 		// TODO: handle this error somehow?
-		srv.ListenAndServe()
+		if err := srv.ListenAndServe(); err != nil {
+			log.WithField("err", err).Error("error starting graceful listener")
+		}
 		log.WithField("addr", addr).Info("server finished")
 		wg.Done()
 	}()
